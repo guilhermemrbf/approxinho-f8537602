@@ -1,19 +1,20 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { sizes } from "@/data/menu";
-
 export function SizesSection() {
-  return (
-    <section className="py-20 bg-background">
+  return <section className="py-20 bg-background">
       <div className="container">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} whileInView={{
+        opacity: 1,
+        y: 0
+      }} viewport={{
+        once: true
+      }} className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Escolha o <span className="text-gradient">Tamanho</span>
+            Escolha o <span className="text-gradient text-primary-foreground">Tamanho</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
             Todos os tamanhos incluem 3 complementos, 1 cobertura e 1 fruta grátis!
@@ -21,14 +22,17 @@ export function SizesSection() {
         </motion.div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {sizes.map((size, index) => (
-            <motion.div
-              key={size.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
+          {sizes.map((size, index) => <motion.div key={size.id} initial={{
+          opacity: 0,
+          y: 20
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }} transition={{
+          delay: index * 0.1
+        }}>
               <Link to={`/montar?size=${size.id}`}>
                 <div className="group relative overflow-hidden rounded-3xl bg-card border border-border p-8 shadow-card hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   {/* Glow effect */}
@@ -36,12 +40,10 @@ export function SizesSection() {
                   
                   {/* Size icon */}
                   <div className="relative mx-auto mb-6 flex items-center justify-center">
-                    <div 
-                      className={`
+                    <div className={`
                         rounded-full gradient-açai flex items-center justify-center text-4xl shadow-lg
                         ${size.ml === 300 ? 'h-20 w-20' : size.ml === 500 ? 'h-24 w-24' : 'h-28 w-28'}
-                      `}
-                    >
+                      `}>
                       🍇
                     </div>
                   </div>
@@ -67,10 +69,8 @@ export function SizesSection() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
-          ))}
+            </motion.div>)}
         </div>
       </div>
-    </section>
-  );
+    </section>;
 }
