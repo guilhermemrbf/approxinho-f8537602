@@ -8,6 +8,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import HomePage from "@/pages/HomePage";
 import BuilderPage from "@/pages/BuilderPage";
 import CartPage from "@/pages/CartPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 import MenuPage from "@/pages/MenuPage";
 import LoginPage from "@/pages/LoginPage";
 import OrdersPage from "@/pages/OrdersPage";
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/cardapio" element={<MenuPage />} />
               <Route path="/montar" element={<BuilderPage />} />
               <Route path="/carrinho" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/pedidos" element={<OrdersPage />} />
             </Route>
             <Route path="/login" element={<LoginPage />} />
