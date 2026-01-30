@@ -8,7 +8,7 @@ export function HeroSection() {
       {/* Background Image */}
       <div className="absolute inset-0">
         <img src={heroImage} alt="Açaí delicioso com toppings" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-transparent border-primary" />
       </div>
 
       {/* Content */}
@@ -39,7 +39,7 @@ export function HeroSection() {
           duration: 0.6,
           delay: 0.1
         }} className="mt-6 text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl">
-            O melhor <span className="text-gradient bg-gradient-to-r from-purple-300 to-pink-300 text-primary-foreground">Açaí</span> da região,
+            O melhor <span className="text-gradient bg-gradient-to-r from-purple-300 to-pink-300 bg-primary text-primary-foreground">Açaí</span> da região,
             <br />
             <span className="text-primary-foreground/90">personalizado pra você</span>
           </motion.h1>
