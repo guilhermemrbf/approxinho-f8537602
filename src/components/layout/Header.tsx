@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User } from "lucide-react";
+import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
@@ -11,6 +11,7 @@ const navLinks = [
   { path: "/cardapio", label: "Cardápio" },
   { path: "/montar", label: "Monte seu Açaí" },
   { path: "/pedidos", label: "Meus Pedidos" },
+  { path: "/admin", label: "Admin", icon: Settings },
 ];
 
 export function Header() {
@@ -61,24 +62,28 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link key={link.path} to={link.path}>
-                <Button
-                  variant={location.pathname === link.path ? "default" : "ghost"}
-                  size="sm"
-                  className="relative"
-                >
-                  {link.label}
-                  {location.pathname === link.path && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute inset-0 rounded-lg bg-primary -z-10"
-                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </Button>
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const Icon = (link as any).icon;
+              return (
+                <Link key={link.path} to={link.path}>
+                  <Button
+                    variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
+                    size="sm"
+                    className="relative gap-1.5"
+                  >
+                    {Icon && <Icon className="h-4 w-4" />}
+                    {link.label}
+                    {(location.pathname === link.path || location.pathname.startsWith(link.path + "/")) && (
+                      <motion.div
+                        layoutId="nav-indicator"
+                        className="absolute inset-0 rounded-lg bg-primary -z-10"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                  </Button>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Actions */}
@@ -130,20 +135,24 @@ export function Header() {
             className="md:hidden bg-card border-b shadow-lg"
           >
             <nav className="container py-4 flex flex-col gap-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <Button
-                    variant={location.pathname === link.path ? "default" : "ghost"}
-                    className="w-full justify-start"
+              {navLinks.map((link) => {
+                const Icon = (link as any).icon;
+                return (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setIsMenuOpen(false)}
                   >
-                    {link.label}
-                  </Button>
-                </Link>
-              ))}
+                    <Button
+                      variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
+                      className="w-full justify-start gap-2"
+                    >
+                      {Icon && <Icon className="h-4 w-4" />}
+                      {link.label}
+                    </Button>
+                  </Link>
+                );
+              })}
               <hr className="my-2" />
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start gap-2">
