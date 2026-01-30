@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, Clock, CheckCircle, Truck, Package, RefreshCw } from "lucide-react";
+import { LogOut, RefreshCw, Bell, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { DashboardStats } from "@/components/admin/DashboardStats";
+import { StatusFilter } from "@/components/admin/StatusFilter";
+import { OrderCard } from "@/components/admin/OrderCard";
 
 type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered";
 
@@ -26,8 +28,8 @@ const mockOrders: Order[] = [
     id: "001",
     customer: "João Silva",
     phone: "(74) 99999-1234",
-    address: "Rua das Flores, 123",
-    items: ["Açaí 500ml + Morango", "Açaí 300ml Tradicional"],
+    address: "Rua das Flores, 123 - Centro",
+    items: ["Açaí 500ml + Morango + Leite Ninho", "Açaí 300ml Tradicional"],
     total: 52.00,
     status: "pending",
     createdAt: new Date(Date.now() - 5 * 60000),
@@ -37,8 +39,8 @@ const mockOrders: Order[] = [
     id: "002",
     customer: "Maria Santos",
     phone: "(74) 98888-5678",
-    address: "Av. Principal, 456",
-    items: ["Açaí 700ml c/ Nutella"],
+    address: "Av. Principal, 456 - Bairro Novo",
+    items: ["Açaí 700ml c/ Nutella + Banana"],
     total: 38.00,
     status: "preparing",
     createdAt: new Date(Date.now() - 15 * 60000),
@@ -48,28 +50,43 @@ const mockOrders: Order[] = [
     id: "003",
     customer: "Pedro Costa",
     phone: "(74) 97777-9012",
-    address: "Rua do Comércio, 789",
-    items: ["Açaí 500ml Especial", "Açaí 500ml Tropical"],
+    address: "Rua do Comércio, 789 - Centro",
+    items: ["Açaí 500ml Especial", "Açaí 500ml Tropical + Granola"],
     total: 64.00,
     status: "ready",
     createdAt: new Date(Date.now() - 25 * 60000),
     paymentMethod: "Dinheiro",
   },
+  {
+    id: "004",
+    customer: "Ana Paula",
+    phone: "(74) 96666-3456",
+    address: "Rua Nova, 321 - Jardim",
+    items: ["Açaí 1L Família + Todos os Complementos"],
+    total: 75.00,
+    status: "delivering",
+    createdAt: new Date(Date.now() - 45 * 60000),
+    paymentMethod: "PIX",
+  },
+  {
+    id: "005",
+    customer: "Carlos Souza",
+    phone: "(74) 95555-7890",
+    address: "Av. Brasil, 100 - Centro",
+    items: ["Açaí 300ml Simples"],
+    total: 18.00,
+    status: "delivered",
+    createdAt: new Date(Date.now() - 90 * 60000),
+    paymentMethod: "Dinheiro",
+  },
 ];
-
-const statusConfig = {
-  pending: { label: "Novo", color: "bg-yellow-500", icon: Clock },
-  preparing: { label: "Preparando", color: "bg-blue-500", icon: Package },
-  ready: { label: "Pronto", color: "bg-green-500", icon: CheckCircle },
-  delivering: { label: "Saiu p/ Entrega", color: "bg-purple-500", icon: Truck },
-  delivered: { label: "Entregue", color: "bg-gray-500", icon: CheckCircle },
-};
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const handleLogout = () => {
     logout();
@@ -84,146 +101,162 @@ const AdminOrdersPage = () => {
     );
   };
 
-  const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
-    const flow: OrderStatus[] = ["pending", "preparing", "ready", "delivering", "delivered"];
-    const currentIndex = flow.indexOf(currentStatus);
-    return currentIndex < flow.length - 1 ? flow[currentIndex + 1] : null;
-  };
+  const orderCounts = useMemo(() => {
+    return {
+      all: orders.length,
+      pending: orders.filter((o) => o.status === "pending").length,
+      preparing: orders.filter((o) => o.status === "preparing").length,
+      ready: orders.filter((o) => o.status === "ready").length,
+      delivering: orders.filter((o) => o.status === "delivering").length,
+      delivered: orders.filter((o) => o.status === "delivered").length,
+    };
+  }, [orders]);
 
-  const filteredOrders = filter === "all" 
-    ? orders 
-    : orders.filter((o) => o.status === filter);
+  const filteredOrders = useMemo(() => {
+    const filtered = filter === "all" 
+      ? orders 
+      : orders.filter((o) => o.status === filter);
+    
+    // Ordenar: pendentes primeiro, depois por data mais recente
+    return filtered.sort((a, b) => {
+      const statusPriority: Record<OrderStatus, number> = {
+        pending: 0,
+        preparing: 1,
+        ready: 2,
+        delivering: 3,
+        delivered: 4,
+      };
+      
+      if (statusPriority[a.status] !== statusPriority[b.status]) {
+        return statusPriority[a.status] - statusPriority[b.status];
+      }
+      
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+  }, [orders, filter]);
 
-  const formatTime = (date: Date) => {
-    const minutes = Math.floor((Date.now() - date.getTime()) / 60000);
-    if (minutes < 1) return "Agora";
-    if (minutes < 60) return `${minutes}min atrás`;
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}min`;
-  };
+  const pendingCount = orderCounts.pending;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-card border-b shadow-sm">
-        <div className="container py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Painel de Pedidos</h1>
-            <p className="text-sm text-muted-foreground">Q!delícia Delivery</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setOrders([...mockOrders])}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
+      {/* Header Fixo */}
+      <header className="sticky top-0 z-50 bg-card border-b-2 border-primary/20 shadow-lg">
+        <div className="container py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary text-xl font-bold text-primary-foreground shadow-md">
+                Q!
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+                  Painel de Pedidos
+                  {pendingCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-sm"
+                    >
+                      <Bell className="h-3.5 w-3.5" />
+                      {pendingCount} {pendingCount === 1 ? "novo" : "novos"}
+                    </motion.span>
+                  )}
+                </h1>
+                <p className="text-sm text-muted-foreground">Q!delícia Pizzaria & Esfiharia</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                title={soundEnabled ? "Som ativado" : "Som desativado"}
+              >
+                <Volume2 className={`h-4 w-4 ${soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setOrders([...mockOrders])}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span className="hidden sm:inline">Atualizar</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleLogout}
+                className="gap-2 text-destructive hover:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sair</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="container py-6">
+      <main className="container py-6">
+        {/* Instruções Rápidas */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20"
+        >
+          <h2 className="font-semibold text-foreground mb-2">📋 Como usar o painel:</h2>
+          <ul className="text-sm text-muted-foreground space-y-1">
+            <li><span className="text-yellow-600 font-medium">🔴 Novos pedidos</span> aparecem primeiro e piscam para chamar atenção</li>
+            <li>Clique no botão de ação para <span className="font-medium">avançar o status</span> do pedido</li>
+            <li>Use os <span className="font-medium">filtros</span> abaixo para ver apenas pedidos específicos</li>
+            <li>O fluxo é: <span className="font-medium">Novo → Preparando → Pronto → Em Rota → Entregue</span></li>
+          </ul>
+        </motion.div>
+
+        {/* Dashboard Stats */}
+        <DashboardStats orders={orders} />
+
         {/* Filtros */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setFilter("all")}
-          >
-            Todos ({orders.length})
-          </Button>
-          {(Object.keys(statusConfig) as OrderStatus[]).map((status) => {
-            const config = statusConfig[status];
-            const count = orders.filter((o) => o.status === status).length;
-            return (
-              <Button
-                key={status}
-                variant={filter === status ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilter(status)}
-              >
-                {config.label} ({count})
-              </Button>
-            );
-          })}
+        <div className="mb-6">
+          <StatusFilter 
+            currentFilter={filter} 
+            onFilterChange={setFilter} 
+            orderCounts={orderCounts}
+          />
         </div>
 
-        {/* Lista de Pedidos */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredOrders.map((order, index) => {
-            const config = statusConfig[order.status];
-            const StatusIcon = config.icon;
-            const nextStatus = getNextStatus(order.status);
-
-            return (
-              <motion.div
-                key={order.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-card rounded-2xl border shadow-card p-4"
-              >
-                {/* Header do Pedido */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-lg">#{order.id}</span>
-                      <Badge className={`${config.color} text-white`}>
-                        <StatusIcon className="h-3 w-3 mr-1" />
-                        {config.label}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{formatTime(order.createdAt)}</p>
-                  </div>
-                  <span className="font-bold text-primary text-lg">
-                    R$ {order.total.toFixed(2).replace(".", ",")}
-                  </span>
-                </div>
-
-                {/* Cliente */}
-                <div className="space-y-1 mb-3">
-                  <p className="font-semibold">{order.customer}</p>
-                  <p className="text-sm text-muted-foreground">{order.phone}</p>
-                  <p className="text-sm text-muted-foreground">{order.address}</p>
-                </div>
-
-                {/* Itens */}
-                <div className="bg-muted/50 rounded-lg p-3 mb-3">
-                  <p className="text-xs font-medium text-muted-foreground mb-1">ITENS</p>
-                  {order.items.map((item, i) => (
-                    <p key={i} className="text-sm">• {item}</p>
-                  ))}
-                </div>
-
-                {/* Pagamento */}
-                <div className="flex items-center justify-between text-sm mb-4">
-                  <span className="text-muted-foreground">Pagamento:</span>
-                  <Badge variant="outline">{order.paymentMethod}</Badge>
-                </div>
-
-                {/* Ações */}
-                {nextStatus && (
-                  <Button
-                    variant="hero"
-                    size="sm"
-                    className="w-full"
-                    onClick={() => updateOrderStatus(order.id, nextStatus)}
-                  >
-                    Marcar como {statusConfig[nextStatus].label}
-                  </Button>
-                )}
-              </motion.div>
-            );
-          })}
+        {/* Grid de Pedidos */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredOrders.map((order, index) => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              index={index}
+              onUpdateStatus={updateOrderStatus}
+            />
+          ))}
         </div>
 
+        {/* Estado Vazio */}
         {filteredOrders.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Nenhum pedido encontrado</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-16"
+          >
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+              <span className="text-3xl">📦</span>
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-1">Nenhum pedido encontrado</h3>
+            <p className="text-muted-foreground">
+              {filter === "all" 
+                ? "Aguardando novos pedidos..." 
+                : `Não há pedidos com status "${filter}"`
+              }
+            </p>
+          </motion.div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
