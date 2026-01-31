@@ -1,105 +1,42 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LogOut, RefreshCw, Bell, Volume2 } from "lucide-react";
+import { LogOut, RefreshCw, Bell, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { StatusFilter } from "@/components/admin/StatusFilter";
 import { OrderCard } from "@/components/admin/OrderCard";
-
-type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered";
-
-interface Order {
-  id: string;
-  customer: string;
-  phone: string;
-  address: string;
-  items: string[];
-  total: number;
-  status: OrderStatus;
-  createdAt: Date;
-  paymentMethod: string;
-}
-
-// Mock de pedidos - será substituído por dados reais do banco
-const mockOrders: Order[] = [
-  {
-    id: "001",
-    customer: "João Silva",
-    phone: "(74) 99999-1234",
-    address: "Rua das Flores, 123 - Centro",
-    items: ["Açaí 500ml + Morango + Leite Ninho", "Açaí 300ml Tradicional"],
-    total: 52.00,
-    status: "pending",
-    createdAt: new Date(Date.now() - 5 * 60000),
-    paymentMethod: "PIX",
-  },
-  {
-    id: "002",
-    customer: "Maria Santos",
-    phone: "(74) 98888-5678",
-    address: "Av. Principal, 456 - Bairro Novo",
-    items: ["Açaí 700ml c/ Nutella + Banana"],
-    total: 38.00,
-    status: "preparing",
-    createdAt: new Date(Date.now() - 15 * 60000),
-    paymentMethod: "Cartão",
-  },
-  {
-    id: "003",
-    customer: "Pedro Costa",
-    phone: "(74) 97777-9012",
-    address: "Rua do Comércio, 789 - Centro",
-    items: ["Açaí 500ml Especial", "Açaí 500ml Tropical + Granola"],
-    total: 64.00,
-    status: "ready",
-    createdAt: new Date(Date.now() - 25 * 60000),
-    paymentMethod: "Dinheiro",
-  },
-  {
-    id: "004",
-    customer: "Ana Paula",
-    phone: "(74) 96666-3456",
-    address: "Rua Nova, 321 - Jardim",
-    items: ["Açaí 1L Família + Todos os Complementos"],
-    total: 75.00,
-    status: "delivering",
-    createdAt: new Date(Date.now() - 45 * 60000),
-    paymentMethod: "PIX",
-  },
-  {
-    id: "005",
-    customer: "Carlos Souza",
-    phone: "(74) 95555-7890",
-    address: "Av. Brasil, 100 - Centro",
-    items: ["Açaí 300ml Simples"],
-    total: 18.00,
-    status: "delivered",
-    createdAt: new Date(Date.now() - 90 * 60000),
-    paymentMethod: "Dinheiro",
-  },
-];
+import { useOrders, OrderStatus, Order } from "@/hooks/useOrders";
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const { orders, loading, fetchOrders, updateOrderStatus } = useOrders();
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleLogout = () => {
     logout();
     navigate("/admin");
   };
 
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+    await updateOrderStatus(orderId, newStatus);
   };
+
+  // Play notification sound for new orders
+  useEffect(() => {
+    const handleNewOrder = () => {
+      if (soundEnabled && audioRef.current) {
+        audioRef.current.play().catch(console.error);
+      }
+    };
+
+    window.addEventListener("new-order", handleNewOrder);
+    return () => window.removeEventListener("new-order", handleNewOrder);
+  }, [soundEnabled]);
 
   const orderCounts = useMemo(() => {
     return {
@@ -109,6 +46,7 @@ const AdminOrdersPage = () => {
       ready: orders.filter((o) => o.status === "ready").length,
       delivering: orders.filter((o) => o.status === "delivering").length,
       delivered: orders.filter((o) => o.status === "delivered").length,
+      cancelled: orders.filter((o) => o.status === "cancelled").length,
     };
   }, [orders]);
 
@@ -125,20 +63,41 @@ const AdminOrdersPage = () => {
         ready: 2,
         delivering: 3,
         delivered: 4,
+        cancelled: 5,
       };
       
       if (statusPriority[a.status] !== statusPriority[b.status]) {
         return statusPriority[a.status] - statusPriority[b.status];
       }
       
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
   }, [orders, filter]);
 
   const pendingCount = orderCounts.pending;
 
+  // Transform orders for DashboardStats component
+  const statsOrders = useMemo(() => {
+    return orders.map((order) => ({
+      id: order.id,
+      customer: order.customer_name,
+      phone: order.customer_phone,
+      address: order.delivery_address,
+      items: order.items.map((item) => `${item.name} ${item.size}`),
+      total: order.total,
+      status: order.status as "pending" | "preparing" | "ready" | "delivering" | "delivered",
+      createdAt: new Date(order.created_at),
+      paymentMethod: order.payment_method === "pix" ? "PIX" : order.payment_method === "card" ? "Cartão" : "Dinheiro",
+    }));
+  }, [orders]);
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Notification Sound */}
+      <audio ref={audioRef} preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleVcxQZfK5Ly" type="audio/wav" />
+      </audio>
+
       {/* Header Fixo */}
       <header className="sticky top-0 z-50 bg-card border-b-2 border-primary/20 shadow-lg">
         <div className="container py-4">
@@ -161,7 +120,10 @@ const AdminOrdersPage = () => {
                     </motion.span>
                   )}
                 </h1>
-                <p className="text-sm text-muted-foreground">Q!delícia Pizzaria & Esfiharia</p>
+                <p className="text-sm text-muted-foreground">
+                  Q!delícia Pizzaria & Esfiharia
+                  <span className="ml-2 text-xs text-green-600">● Sincronizado em tempo real</span>
+                </p>
               </div>
             </div>
             
@@ -172,15 +134,20 @@ const AdminOrdersPage = () => {
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 title={soundEnabled ? "Som ativado" : "Som desativado"}
               >
-                <Volume2 className={`h-4 w-4 ${soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                {soundEnabled ? (
+                  <Volume2 className="h-4 w-4 text-primary" />
+                ) : (
+                  <VolumeX className="h-4 w-4 text-muted-foreground" />
+                )}
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => setOrders([...mockOrders])}
+                onClick={() => fetchOrders()}
                 className="gap-2"
+                disabled={loading}
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                 <span className="hidden sm:inline">Atualizar</span>
               </Button>
               <Button 
@@ -214,7 +181,7 @@ const AdminOrdersPage = () => {
         </motion.div>
 
         {/* Dashboard Stats */}
-        <DashboardStats orders={orders} />
+        <DashboardStats orders={statsOrders} />
 
         {/* Filtros */}
         <div className="mb-6">
@@ -225,20 +192,42 @@ const AdminOrdersPage = () => {
           />
         </div>
 
+        {/* Loading State */}
+        {loading && orders.length === 0 && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-3 text-muted-foreground">Carregando pedidos...</span>
+          </div>
+        )}
+
         {/* Grid de Pedidos */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredOrders.map((order, index) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              index={index}
-              onUpdateStatus={updateOrderStatus}
-            />
-          ))}
-        </div>
+        {!loading && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredOrders.map((order, index) => (
+              <OrderCard
+                key={order.id}
+                order={{
+                  id: order.id,
+                  customer: order.customer_name,
+                  phone: order.customer_phone,
+                  address: order.delivery_address + (order.address_complement ? ` - ${order.address_complement}` : ""),
+                  items: order.items.map((item) => 
+                    `${item.name} ${item.size}${item.details ? ` + ${item.details}` : ""}`
+                  ),
+                  total: order.total,
+                  status: order.status as "pending" | "preparing" | "ready" | "delivering" | "delivered",
+                  createdAt: new Date(order.created_at),
+                  paymentMethod: order.payment_method === "pix" ? "PIX" : order.payment_method === "card" ? "Cartão" : "Dinheiro",
+                }}
+                index={index}
+                onUpdateStatus={handleUpdateStatus}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Estado Vazio */}
-        {filteredOrders.length === 0 && (
+        {!loading && filteredOrders.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
 import { useToast } from "@/hooks/use-toast";
+import { useOrders, PaymentMethod as DbPaymentMethod } from "@/hooks/useOrders";
 
 type PaymentMethod = "pix" | "credit" | "debit" | "cash";
 
@@ -20,12 +21,14 @@ interface CustomerInfo {
   complement: string;
   reference: string;
   changeFor: string;
+  notes: string;
 }
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const { toast } = useToast();
+  const { createOrder } = useOrders();
   
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -37,6 +40,7 @@ const CheckoutPage = () => {
     complement: "",
     reference: "",
     changeFor: "",
+    notes: "",
   });
 
   const deliveryFee = businessInfo.deliveryFee;
@@ -80,19 +84,60 @@ const CheckoutPage = () => {
     return true;
   };
 
+  const mapPaymentMethod = (method: PaymentMethod): DbPaymentMethod => {
+    switch (method) {
+      case "pix": return "pix";
+      case "credit":
+      case "debit": return "card";
+      case "cash": return "cash";
+      default: return "pix";
+    }
+  };
+
+  const submitOrder = async () => {
+    const orderItems = items.map((item) => ({
+      name: item.flavor.name,
+      size: item.size.name,
+      quantity: item.quantity,
+      price: item.totalPrice,
+      details: [
+        ...item.complements.map(c => c.name),
+        ...item.toppings.map(t => t.name),
+        ...item.fruits.map(f => f.name),
+      ].join(", ") || undefined,
+    }));
+
+    const changeValue = customerInfo.changeFor 
+      ? parseFloat(customerInfo.changeFor.replace(",", "."))
+      : undefined;
+
+    const fullAddress = customerInfo.reference 
+      ? `${customerInfo.address} (${customerInfo.reference})`
+      : customerInfo.address;
+
+    const order = await createOrder({
+      customer_name: customerInfo.name,
+      customer_phone: customerInfo.phone,
+      delivery_address: fullAddress,
+      address_complement: customerInfo.complement || undefined,
+      items: orderItems,
+      subtotal: totalPrice,
+      delivery_fee: deliveryFee,
+      total: grandTotal,
+      payment_method: mapPaymentMethod(paymentMethod),
+      payment_change_for: changeValue,
+      notes: customerInfo.notes || undefined,
+    });
+
+    return order;
+  };
+
   const handleGeneratePix = async () => {
     if (!validateForm()) return;
     
     setIsProcessing(true);
     
     // TODO: Integrar com Mercado Pago API
-    // const response = await mercadoPagoApi.createPixPayment({
-    //   amount: grandTotal,
-    //   description: `Pedido Q!delícia - ${items.length} itens`,
-    //   payer: { name: customerInfo.name, phone: customerInfo.phone }
-    // });
-    
-    // Simulação de geração do PIX
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
     setPixGenerated(true);
@@ -106,30 +151,14 @@ const CheckoutPage = () => {
     
     setIsProcessing(true);
     
-    // TODO: Integrar com Mercado Pago Checkout Pro ou Checkout Transparente
-    // const preference = await mercadoPagoApi.createPreference({
-    //   items: items.map(item => ({
-    //     title: `${item.flavor.name} - ${item.size.name}`,
-    //     quantity: item.quantity,
-    //     unit_price: item.totalPrice
-    //   })),
-    //   payer: { name: customerInfo.name, phone: customerInfo.phone, address: customerInfo.address },
-    //   payment_methods: { 
-    //     excluded_payment_types: paymentMethod === 'credit' ? [{ id: 'debit_card' }] : [{ id: 'credit_card' }]
-    //   }
-    // });
-    // window.location.href = preference.init_point;
+    const order = await submitOrder();
     
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (order) {
+      clearCart();
+      navigate("/pedidos");
+    }
     
     setIsProcessing(false);
-    toast({ 
-      title: "Pagamento confirmado!", 
-      description: "Seu pedido foi enviado para a cozinha" 
-    });
-    
-    clearCart();
-    navigate("/pedidos");
   };
 
   const handleCashPayment = async () => {
@@ -149,17 +178,14 @@ const CheckoutPage = () => {
     
     setIsProcessing(true);
     
-    // Enviar pedido para o sistema
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const order = await submitOrder();
+    
+    if (order) {
+      clearCart();
+      navigate("/pedidos");
+    }
     
     setIsProcessing(false);
-    toast({ 
-      title: "Pedido confirmado!", 
-      description: "Pagamento na entrega" 
-    });
-    
-    clearCart();
-    navigate("/pedidos");
   };
 
   const copyPixCode = () => {
@@ -167,14 +193,17 @@ const CheckoutPage = () => {
     toast({ title: "Código PIX copiado!" });
   };
 
-  const confirmPixPayment = () => {
-    // TODO: Verificar status do pagamento via webhook ou polling
-    // const paymentStatus = await mercadoPagoApi.getPaymentStatus(paymentId);
-    // if (paymentStatus === 'approved') { ... }
+  const confirmPixPayment = async () => {
+    setIsProcessing(true);
     
-    toast({ title: "Pagamento confirmado!", description: "Seu pedido foi enviado para a cozinha" });
-    clearCart();
-    navigate("/pedidos");
+    const order = await submitOrder();
+    
+    if (order) {
+      clearCart();
+      navigate("/pedidos");
+    }
+    
+    setIsProcessing(false);
   };
 
   return (
@@ -409,8 +438,13 @@ const CheckoutPage = () => {
                     variant="hero"
                     className="w-full mt-4"
                     onClick={confirmPixPayment}
+                    disabled={isProcessing}
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4 mr-2" />
+                    )}
                     Já paguei
                   </Button>
                   
@@ -434,6 +468,8 @@ const CheckoutPage = () => {
               <Textarea
                 placeholder="Alguma observação sobre o pedido? (alergia, preferências, etc.)"
                 className="min-h-[100px]"
+                value={customerInfo.notes}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
               />
             </motion.div>
           </div>
@@ -450,7 +486,9 @@ const CheckoutPage = () => {
                     <div>
                       <span className="mr-2">{item.flavor.icon}</span>
                       <span>{item.quantity}x {item.flavor.name}</span>
-                      <span className="text-muted-foreground ml-1">({item.size.ml}ml)</span>
+                      <p className="text-xs text-muted-foreground ml-6">
+                        {item.size.name}
+                      </p>
                     </div>
                     <span className="font-medium">
                       R$ {(item.totalPrice * item.quantity).toFixed(2).replace(".", ",")}
@@ -459,30 +497,25 @@ const CheckoutPage = () => {
                 ))}
               </div>
 
-              <hr />
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>R$ {totalPrice.toFixed(2).replace(".", ",")}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Taxa de entrega</span>
                   <span>R$ {deliveryFee.toFixed(2).replace(".", ",")}</span>
                 </div>
+                <div className="flex justify-between font-bold text-lg pt-2 border-t">
+                  <span>Total</span>
+                  <span className="text-primary">
+                    R$ {grandTotal.toFixed(2).replace(".", ",")}
+                  </span>
+                </div>
               </div>
 
-              <hr />
-
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-lg">Total</span>
-                <span className="text-2xl font-extrabold text-primary">
-                  R$ {grandTotal.toFixed(2).replace(".", ",")}
-                </span>
-              </div>
-
-              {/* Botão de Ação */}
-              {paymentMethod === "pix" && !pixGenerated ? (
+              {/* Botão de ação baseado no método de pagamento */}
+              {paymentMethod === "pix" && !pixGenerated && (
                 <Button
                   variant="hero"
                   size="lg"
@@ -498,11 +531,35 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <QrCode className="h-4 w-4 mr-2" />
-                      Gerar PIX
+                      Gerar QR Code PIX
                     </>
                   )}
                 </Button>
-              ) : paymentMethod === "cash" ? (
+              )}
+
+              {(paymentMethod === "credit" || paymentMethod === "debit") && (
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleCardPayment}
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Pagar com {paymentMethod === "credit" ? "Crédito" : "Débito"}
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {paymentMethod === "cash" && (
                 <Button
                   variant="hero"
                   size="lg"
@@ -522,30 +579,10 @@ const CheckoutPage = () => {
                     </>
                   )}
                 </Button>
-              ) : (paymentMethod === "credit" || paymentMethod === "debit") && !pixGenerated ? (
-                <Button
-                  variant="hero"
-                  size="lg"
-                  className="w-full"
-                  onClick={handleCardPayment}
-                  disabled={isProcessing}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Pagar com Cartão
-                    </>
-                  )}
-                </Button>
-              ) : null}
+              )}
 
               <p className="text-xs text-center text-muted-foreground">
-                🔒 Pagamento seguro via Mercado Pago
+                Ao confirmar, você concorda com nossos termos de serviço
               </p>
             </div>
           </div>

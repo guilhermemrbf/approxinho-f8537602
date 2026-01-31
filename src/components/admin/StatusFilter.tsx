@@ -1,7 +1,7 @@
 import { Clock, Package, CheckCircle, Truck, CheckCheck, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered";
+type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered" | "cancelled";
 
 interface StatusFilterProps {
   currentFilter: OrderStatus | "all";
