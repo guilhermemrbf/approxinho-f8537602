@@ -167,6 +167,15 @@
   .glass-dark {
     @apply backdrop-blur-md bg-black/40 border border-white/10;
   }
+
+  /* Safe area for mobile devices with notches */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
 }
 
 /* Custom Scrollbar */

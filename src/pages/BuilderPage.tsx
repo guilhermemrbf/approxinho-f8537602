@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, ShoppingCart, Check, Plus, Minus } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShoppingCart, Check, Plus, Minus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -20,13 +20,13 @@ import {
 
 type Step = "size" | "flavor" | "complements" | "toppings" | "fruits" | "summary";
 
-const steps: { key: Step; label: string }[] = [
-  { key: "size", label: "Tamanho" },
-  { key: "flavor", label: "Sabor" },
-  { key: "complements", label: "Complementos" },
-  { key: "toppings", label: "Coberturas" },
-  { key: "fruits", label: "Frutas" },
-  { key: "summary", label: "Resumo" },
+const steps: { key: Step; label: string; emoji: string }[] = [
+  { key: "size", label: "Tamanho", emoji: "📏" },
+  { key: "flavor", label: "Sabor", emoji: "🍇" },
+  { key: "complements", label: "Complementos", emoji: "🍫" },
+  { key: "toppings", label: "Coberturas", emoji: "🍯" },
+  { key: "fruits", label: "Frutas", emoji: "🍓" },
+  { key: "summary", label: "Resumo", emoji: "✨" },
 ];
 
 const BuilderPage = () => {
@@ -34,6 +34,7 @@ const BuilderPage = () => {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { toast } = useToast();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const initialSize = searchParams.get("size");
   const [currentStep, setCurrentStep] = useState<Step>(initialSize ? "flavor" : "size");
@@ -103,10 +104,19 @@ const BuilderPage = () => {
     }
   };
 
+  // Scroll to top when step changes
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (contentRef.current) {
+      contentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   const goNext = () => {
     const nextIndex = currentStepIndex + 1;
     if (nextIndex < steps.length) {
       setCurrentStep(steps[nextIndex].key);
+      setTimeout(scrollToTop, 50);
     }
   };
 
@@ -114,6 +124,7 @@ const BuilderPage = () => {
     const prevIndex = currentStepIndex - 1;
     if (prevIndex >= 0) {
       setCurrentStep(steps[prevIndex].key);
+      setTimeout(scrollToTop, 50);
     }
   };
 
@@ -166,87 +177,111 @@ const BuilderPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32">
-      {/* Progress bar */}
-      <div className="sticky top-0 z-40 bg-card border-b shadow-sm">
-        <div className="container py-4">
+    <div className="min-h-screen bg-background pb-28 md:pb-32">
+      {/* Progress bar - Mobile Optimized */}
+      <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b shadow-sm" ref={contentRef}>
+        <div className="container py-3 md:py-4">
+          {/* Header */}
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-lg font-bold text-foreground">Monte seu Açaí</h1>
-            <span className="text-sm font-medium text-primary">
-              R$ {totalPrice.toFixed(2).replace(".", ",")}
-            </span>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl gradient-primary flex items-center justify-center">
+                <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-base md:text-lg font-bold text-foreground">Monte seu Açaí</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Personalize do seu jeito</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-muted-foreground">Total</p>
+              <span className="text-lg md:text-xl font-bold text-primary">
+                R$ {totalPrice.toFixed(2).replace(".", ",")}
+              </span>
+            </div>
           </div>
-          <div className="flex gap-1">
+          
+          {/* Progress Steps - Mobile Optimized */}
+          <div className="flex gap-1 mb-2">
             {steps.map((step, index) => (
               <div
                 key={step.key}
-                className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  index <= currentStepIndex ? "bg-primary" : "bg-muted"
+                className={`h-1.5 md:h-2 flex-1 rounded-full transition-all duration-300 ${
+                  index < currentStepIndex 
+                    ? "bg-primary" 
+                    : index === currentStepIndex 
+                    ? "bg-primary animate-pulse" 
+                    : "bg-muted"
                 }`}
               />
             ))}
           </div>
-          <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-            {steps.map((step, index) => (
-              <span
-                key={step.key}
-                className={index === currentStepIndex ? "text-primary font-semibold" : ""}
-              >
-                {step.label}
-              </span>
-            ))}
+          
+          {/* Current Step Indicator - Mobile */}
+          <div className="flex items-center justify-center gap-2 py-1">
+            <span className="text-lg">{steps[currentStepIndex].emoji}</span>
+            <span className="text-sm font-semibold text-primary">
+              {steps[currentStepIndex].label}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              ({currentStepIndex + 1}/{steps.length})
+            </span>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="container py-8">
+      <div className="container py-4 md:py-8">
         <AnimatePresence mode="wait">
           {/* SIZE STEP */}
           {currentStep === "size" && (
             <motion.div
               key="size"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Escolha o Tamanho</h2>
-                <p className="text-muted-foreground mt-2">
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Escolha o Tamanho</h2>
+                <p className="text-sm md:text-base text-muted-foreground mt-1 md:mt-2">
                   Todos incluem complementos, cobertura e fruta grátis!
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 md:gap-4 sm:grid-cols-3">
                 {sizes.map((size) => (
                   <button
                     key={size.id}
                     onClick={() => setSelectedSize(size)}
-                    className={`relative p-6 rounded-2xl border-2 transition-all ${
+                    className={`relative p-4 md:p-6 rounded-2xl border-2 transition-all active:scale-[0.98] ${
                       selectedSize?.id === size.id
-                        ? "border-primary bg-primary/5 shadow-lg"
-                        : "border-border bg-card hover:border-primary/50"
+                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
+                        : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
                     }`}
                   >
                     {selectedSize?.id === size.id && (
-                      <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 right-2 md:top-3 md:right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
+                      >
                         <Check className="h-4 w-4 text-primary-foreground" />
-                      </div>
+                      </motion.div>
                     )}
                     <div
-                      className={`mx-auto rounded-full gradient-açai flex items-center justify-center text-3xl shadow-md mb-4 ${
-                        size.ml === 300 ? "h-16 w-16" : size.ml === 500 ? "h-20 w-20" : "h-24 w-24"
+                      className={`mx-auto rounded-full gradient-açai flex items-center justify-center text-2xl md:text-3xl shadow-md mb-3 md:mb-4 ${
+                        size.ml === 300 ? "h-14 w-14 md:h-16 md:w-16" : size.ml === 500 ? "h-16 w-16 md:h-20 md:w-20" : "h-20 w-20 md:h-24 md:w-24"
                       }`}
                     >
                       🍇
                     </div>
-                    <h3 className="font-bold text-lg">{size.name}</h3>
-                    <p className="text-2xl font-extrabold text-primary">{size.ml}ml</p>
-                    <p className="text-xl font-bold mt-2">
+                    <h3 className="font-bold text-base md:text-lg">{size.name}</h3>
+                    <p className="text-xl md:text-2xl font-extrabold text-primary">{size.ml}ml</p>
+                    <p className="text-lg md:text-xl font-bold mt-1 md:mt-2">
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
-                    <div className="mt-3 text-xs text-muted-foreground space-y-0.5">
+                    <div className="mt-2 md:mt-3 text-[11px] md:text-xs text-muted-foreground space-y-0.5">
                       <p>✓ {size.freeComplements} complementos</p>
                       <p>✓ {size.freeToppings} cobertura</p>
                       <p>✓ {size.freeFruits} fruta</p>
@@ -261,37 +296,46 @@ const BuilderPage = () => {
           {currentStep === "flavor" && (
             <motion.div
               key="flavor"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Escolha o Sabor</h2>
-                <p className="text-muted-foreground mt-2">
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Escolha o Sabor</h2>
+                <p className="text-sm md:text-base text-muted-foreground mt-1 md:mt-2">
                   Selecione a base do seu açaí
                 </p>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {flavors.map((flavor) => (
                   <button
                     key={flavor.id}
                     onClick={() => setSelectedFlavor(flavor)}
-                    className={`relative p-5 rounded-2xl border-2 transition-all text-left ${
+                    className={`relative p-4 md:p-5 rounded-2xl border-2 transition-all text-left active:scale-[0.98] ${
                       selectedFlavor?.id === flavor.id
-                        ? "border-primary bg-primary/5 shadow-lg"
-                        : "border-border bg-card hover:border-primary/50"
+                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
+                        : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
                     }`}
                   >
                     {selectedFlavor?.id === flavor.id && (
-                      <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                      <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute top-2 right-2 md:top-3 md:right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
+                      >
                         <Check className="h-4 w-4 text-primary-foreground" />
-                      </div>
+                      </motion.div>
                     )}
-                    <span className="text-4xl">{flavor.icon}</span>
-                    <h3 className="font-bold text-lg mt-3">{flavor.name}</h3>
-                    <p className="text-sm text-muted-foreground">{flavor.description}</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl md:text-4xl">{flavor.icon}</span>
+                      <div>
+                        <h3 className="font-bold text-base md:text-lg">{flavor.name}</h3>
+                        <p className="text-xs md:text-sm text-muted-foreground">{flavor.description}</p>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -302,28 +346,27 @@ const BuilderPage = () => {
           {currentStep === "complements" && (
             <motion.div
               key="complements"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Escolha os Complementos</h2>
-                <p className="text-muted-foreground mt-2">
-                  {freeComplementsLeft > 0 ? (
-                    <>
-                      Você ainda tem{" "}
-                      <span className="text-primary font-bold">{freeComplementsLeft} grátis</span>!
-                      Adicionais: R$ 2,00 cada
-                    </>
-                  ) : (
-                    "Cada complemento adicional: R$ 2,00"
-                  )}
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Escolha os Complementos</h2>
+                {freeComplementsLeft > 0 && (
+                  <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
+                    <span className="text-success font-bold text-sm">{freeComplementsLeft} GRÁTIS</span>
+                    <span className="text-xs text-muted-foreground">restantes</span>
+                  </div>
+                )}
+                <p className="text-xs md:text-sm text-muted-foreground mt-2">
+                  Adicionais: R$ 2,00 cada
                 </p>
               </div>
 
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
-                {complements.map((complement, index) => {
+              <div className="grid gap-2 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
+                {complements.map((complement) => {
                   const isSelected = selectedComplements.find((c) => c.id === complement.id);
                   const selectedIndex = selectedComplements.findIndex((c) => c.id === complement.id);
                   const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeComplements || 0);
@@ -332,25 +375,29 @@ const BuilderPage = () => {
                     <button
                       key={complement.id}
                       onClick={() => toggleComplement(complement)}
-                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                      className={`relative p-2 md:p-4 rounded-xl border-2 transition-all active:scale-[0.95] ${
                         isSelected
                           ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border bg-card hover:border-primary/50"
+                          : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center shadow-md"
+                        >
                           <Check className="h-3 w-3 text-primary-foreground" />
-                        </div>
+                        </motion.div>
                       )}
-                      <span className="text-2xl">{complement.icon}</span>
-                      <p className="font-medium text-sm mt-2">{complement.name}</p>
+                      <span className="text-xl md:text-2xl">{complement.icon}</span>
+                      <p className="font-medium text-[11px] md:text-sm mt-1 md:mt-2 leading-tight">{complement.name}</p>
                       <p
-                        className={`text-xs mt-1 ${
-                          isFree ? "text-success font-semibold" : "text-muted-foreground"
+                        className={`text-[10px] md:text-xs mt-0.5 md:mt-1 font-medium ${
+                          isFree ? "text-success" : "text-muted-foreground"
                         }`}
                       >
-                        {isFree ? "GRÁTIS" : `+ R$ ${complement.price.toFixed(2).replace(".", ",")}`}
+                        {isFree ? "GRÁTIS" : `+R$${complement.price.toFixed(0)}`}
                       </p>
                     </button>
                   );
@@ -363,27 +410,26 @@ const BuilderPage = () => {
           {currentStep === "toppings" && (
             <motion.div
               key="toppings"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Escolha as Coberturas</h2>
-                <p className="text-muted-foreground mt-2">
-                  {freeToppingsLeft > 0 ? (
-                    <>
-                      Você ainda tem{" "}
-                      <span className="text-primary font-bold">{freeToppingsLeft} grátis</span>!
-                      Adicionais: R$ 2,00 cada
-                    </>
-                  ) : (
-                    "Cada cobertura adicional: R$ 2,00"
-                  )}
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Escolha as Coberturas</h2>
+                {freeToppingsLeft > 0 && (
+                  <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
+                    <span className="text-success font-bold text-sm">{freeToppingsLeft} GRÁTIS</span>
+                    <span className="text-xs text-muted-foreground">restantes</span>
+                  </div>
+                )}
+                <p className="text-xs md:text-sm text-muted-foreground mt-2">
+                  Adicionais: R$ 2,00 cada
                 </p>
               </div>
 
-              <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid gap-2 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
                 {toppings.map((topping) => {
                   const isSelected = selectedToppings.find((t) => t.id === topping.id);
                   const selectedIndex = selectedToppings.findIndex((t) => t.id === topping.id);
@@ -393,25 +439,29 @@ const BuilderPage = () => {
                     <button
                       key={topping.id}
                       onClick={() => toggleTopping(topping)}
-                      className={`relative p-4 rounded-xl border-2 transition-all ${
+                      className={`relative p-2 md:p-4 rounded-xl border-2 transition-all active:scale-[0.95] ${
                         isSelected
                           ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border bg-card hover:border-primary/50"
+                          : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center shadow-md"
+                        >
                           <Check className="h-3 w-3 text-primary-foreground" />
-                        </div>
+                        </motion.div>
                       )}
-                      <span className="text-2xl">{topping.icon}</span>
-                      <p className="font-medium text-sm mt-2">{topping.name}</p>
+                      <span className="text-xl md:text-2xl">{topping.icon}</span>
+                      <p className="font-medium text-[11px] md:text-sm mt-1 md:mt-2 leading-tight">{topping.name}</p>
                       <p
-                        className={`text-xs mt-1 ${
-                          isFree ? "text-success font-semibold" : "text-muted-foreground"
+                        className={`text-[10px] md:text-xs mt-0.5 md:mt-1 font-medium ${
+                          isFree ? "text-success" : "text-muted-foreground"
                         }`}
                       >
-                        {isFree ? "GRÁTIS" : `+ R$ ${topping.price.toFixed(2).replace(".", ",")}`}
+                        {isFree ? "GRÁTIS" : `+R$${topping.price.toFixed(0)}`}
                       </p>
                     </button>
                   );
@@ -424,27 +474,26 @@ const BuilderPage = () => {
           {currentStep === "fruits" && (
             <motion.div
               key="fruits"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Escolha as Frutas</h2>
-                <p className="text-muted-foreground mt-2">
-                  {freeFruitsLeft > 0 ? (
-                    <>
-                      Você ainda tem{" "}
-                      <span className="text-primary font-bold">{freeFruitsLeft} grátis</span>!
-                      Adicionais: R$ 3,00 cada
-                    </>
-                  ) : (
-                    "Cada fruta adicional: R$ 3,00"
-                  )}
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Escolha as Frutas</h2>
+                {freeFruitsLeft > 0 && (
+                  <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
+                    <span className="text-success font-bold text-sm">{freeFruitsLeft} GRÁTIS</span>
+                    <span className="text-xs text-muted-foreground">restantes</span>
+                  </div>
+                )}
+                <p className="text-xs md:text-sm text-muted-foreground mt-2">
+                  Adicionais: R$ 3,00 cada
                 </p>
               </div>
 
-              <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
                 {fruits.map((fruit) => {
                   const isSelected = selectedFruits.find((f) => f.id === fruit.id);
                   const selectedIndex = selectedFruits.findIndex((f) => f.id === fruit.id);
@@ -454,25 +503,29 @@ const BuilderPage = () => {
                     <button
                       key={fruit.id}
                       onClick={() => toggleFruit(fruit)}
-                      className={`relative p-6 rounded-2xl border-2 transition-all ${
+                      className={`relative p-4 md:p-6 rounded-2xl border-2 transition-all active:scale-[0.98] ${
                         isSelected
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border bg-card hover:border-primary/50"
+                          ? "border-primary bg-primary/5 shadow-md shadow-primary/20"
+                          : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                        <motion.div 
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute top-2 right-2 md:top-3 md:right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
+                        >
                           <Check className="h-4 w-4 text-primary-foreground" />
-                        </div>
+                        </motion.div>
                       )}
-                      <span className="text-5xl">{fruit.icon}</span>
-                      <p className="font-bold mt-3">{fruit.name}</p>
+                      <span className="text-4xl md:text-5xl">{fruit.icon}</span>
+                      <p className="font-bold text-sm md:text-base mt-2 md:mt-3">{fruit.name}</p>
                       <p
-                        className={`text-sm mt-1 ${
-                          isFree ? "text-success font-semibold" : "text-muted-foreground"
+                        className={`text-xs md:text-sm mt-1 font-medium ${
+                          isFree ? "text-success" : "text-muted-foreground"
                         }`}
                       >
-                        {isFree ? "GRÁTIS" : `+ R$ ${fruit.price.toFixed(2).replace(".", ",")}`}
+                        {isFree ? "GRÁTIS" : `+R$${fruit.price.toFixed(0)}`}
                       </p>
                     </button>
                   );
@@ -485,56 +538,56 @@ const BuilderPage = () => {
           {currentStep === "summary" && selectedSize && selectedFlavor && (
             <motion.div
               key="summary"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4 md:space-y-6"
             >
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">Resumo do Pedido</h2>
-                <p className="text-muted-foreground mt-2">
+              <div className="text-center px-2">
+                <h2 className="text-xl md:text-2xl font-bold">Resumo do Pedido</h2>
+                <p className="text-sm text-muted-foreground mt-1">
                   Confira seu açaí personalizado
                 </p>
               </div>
 
-              <div className="max-w-lg mx-auto bg-card rounded-2xl border shadow-card p-6 space-y-4">
+              <div className="max-w-lg mx-auto bg-card rounded-2xl border shadow-card p-4 md:p-6 space-y-3 md:space-y-4">
                 {/* Size & Flavor */}
-                <div className="flex items-center gap-4 pb-4 border-b">
-                  <div className="h-16 w-16 rounded-full gradient-açai flex items-center justify-center text-3xl">
+                <div className="flex items-center gap-3 md:gap-4 pb-3 md:pb-4 border-b">
+                  <div className="h-12 w-12 md:h-16 md:w-16 rounded-full gradient-açai flex items-center justify-center text-2xl md:text-3xl shrink-0">
                     {selectedFlavor.icon}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{selectedFlavor.name}</h3>
-                    <p className="text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-base md:text-lg">{selectedFlavor.name}</h3>
+                    <p className="text-sm text-muted-foreground">
                       {selectedSize.name} ({selectedSize.ml}ml)
                     </p>
                   </div>
-                  <div className="ml-auto text-right">
-                    <p className="font-bold text-lg">R$ {breakdown.base.toFixed(2).replace(".", ",")}</p>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-base md:text-lg">R$ {breakdown.base.toFixed(2).replace(".", ",")}</p>
                   </div>
                 </div>
 
                 {/* Complements */}
                 {selectedComplements.length > 0 && (
-                  <div className="pb-4 border-b">
-                    <h4 className="font-semibold mb-2">Complementos</h4>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="pb-3 md:pb-4 border-b">
+                    <h4 className="font-semibold text-sm md:text-base mb-2">Complementos</h4>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                       {selectedComplements.map((c, i) => (
                         <span
                           key={c.id}
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${
                             i < selectedSize.freeComplements
                               ? "bg-success/20 text-success"
                               : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {c.icon} {c.name}
-                          {i < selectedSize.freeComplements && " (grátis)"}
                         </span>
                       ))}
                     </div>
                     {breakdown.complements > 0 && (
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-xs md:text-sm text-muted-foreground mt-2">
                         + R$ {breakdown.complements.toFixed(2).replace(".", ",")}
                       </p>
                     )}
@@ -543,25 +596,24 @@ const BuilderPage = () => {
 
                 {/* Toppings */}
                 {selectedToppings.length > 0 && (
-                  <div className="pb-4 border-b">
-                    <h4 className="font-semibold mb-2">Coberturas</h4>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="pb-3 md:pb-4 border-b">
+                    <h4 className="font-semibold text-sm md:text-base mb-2">Coberturas</h4>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                       {selectedToppings.map((t, i) => (
                         <span
                           key={t.id}
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${
                             i < selectedSize.freeToppings
                               ? "bg-success/20 text-success"
                               : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {t.icon} {t.name}
-                          {i < selectedSize.freeToppings && " (grátis)"}
                         </span>
                       ))}
                     </div>
                     {breakdown.toppings > 0 && (
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-xs md:text-sm text-muted-foreground mt-2">
                         + R$ {breakdown.toppings.toFixed(2).replace(".", ",")}
                       </p>
                     )}
@@ -570,25 +622,24 @@ const BuilderPage = () => {
 
                 {/* Fruits */}
                 {selectedFruits.length > 0 && (
-                  <div className="pb-4 border-b">
-                    <h4 className="font-semibold mb-2">Frutas</h4>
-                    <div className="flex flex-wrap gap-2">
+                  <div className="pb-3 md:pb-4 border-b">
+                    <h4 className="font-semibold text-sm md:text-base mb-2">Frutas</h4>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                       {selectedFruits.map((f, i) => (
                         <span
                           key={f.id}
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          className={`px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${
                             i < selectedSize.freeFruits
                               ? "bg-success/20 text-success"
                               : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {f.icon} {f.name}
-                          {i < selectedSize.freeFruits && " (grátis)"}
                         </span>
                       ))}
                     </div>
                     {breakdown.fruits > 0 && (
-                      <p className="text-sm text-muted-foreground mt-2">
+                      <p className="text-xs md:text-sm text-muted-foreground mt-2">
                         + R$ {breakdown.fruits.toFixed(2).replace(".", ",")}
                       </p>
                     )}
@@ -596,20 +647,22 @@ const BuilderPage = () => {
                 )}
 
                 {/* Quantity */}
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">Quantidade</span>
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between py-2">
+                  <span className="font-medium text-sm md:text-base">Quantidade</span>
+                  <div className="flex items-center gap-2 md:gap-3">
                     <Button
                       variant="outline"
                       size="icon"
+                      className="h-8 w-8 md:h-10 md:w-10"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     >
                       <Minus className="h-4 w-4" />
                     </Button>
-                    <span className="text-xl font-bold w-8 text-center">{quantity}</span>
+                    <span className="text-lg md:text-xl font-bold w-8 text-center">{quantity}</span>
                     <Button
                       variant="outline"
                       size="icon"
+                      className="h-8 w-8 md:h-10 md:w-10"
                       onClick={() => setQuantity(quantity + 1)}
                     >
                       <Plus className="h-4 w-4" />
@@ -618,10 +671,10 @@ const BuilderPage = () => {
                 </div>
 
                 {/* Total */}
-                <div className="pt-4 border-t">
+                <div className="pt-3 md:pt-4 border-t bg-primary/5 -mx-4 md:-mx-6 px-4 md:px-6 pb-4 md:pb-6 rounded-b-2xl">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold">Total</span>
-                    <span className="text-2xl font-extrabold text-primary">
+                    <span className="text-base md:text-lg font-bold">Total</span>
+                    <span className="text-xl md:text-2xl font-extrabold text-primary">
                       R$ {(totalPrice * quantity).toFixed(2).replace(".", ",")}
                     </span>
                   </div>
@@ -632,42 +685,44 @@ const BuilderPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-lg">
-        <div className="container py-4 flex items-center justify-between gap-4">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={goPrev}
-            disabled={currentStepIndex === 0}
-            className="flex-1 sm:flex-none"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
+      {/* Bottom navigation - Mobile Optimized */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t shadow-xl safe-area-bottom">
+        <div className="container py-3 md:py-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={goPrev}
+              disabled={currentStepIndex === 0}
+              className="h-12 md:h-14 px-4 md:px-6 flex-shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span className="hidden sm:inline ml-2">Voltar</span>
+            </Button>
 
-          {currentStep !== "summary" ? (
-            <Button
-              variant="hero"
-              size="lg"
-              onClick={goNext}
-              disabled={!canProceed()}
-              className="flex-1 sm:flex-none"
-            >
-              Continuar
-              <ArrowRight className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
-            <Button
-              variant="hero"
-              size="lg"
-              onClick={handleAddToCart}
-              className="flex-1 sm:flex-none"
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Adicionar ao Carrinho
-            </Button>
-          )}
+            {currentStep !== "summary" ? (
+              <Button
+                variant="hero"
+                size="lg"
+                onClick={goNext}
+                disabled={!canProceed()}
+                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2"
+              >
+                Continuar
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+            ) : (
+              <Button
+                variant="hero"
+                size="lg"
+                onClick={handleAddToCart}
+                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                <span className="hidden sm:inline">Adicionar ao</span> Carrinho
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
