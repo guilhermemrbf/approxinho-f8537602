@@ -99,52 +99,56 @@ const AdminOrdersPage = () => {
       </audio>
 
       {/* Header Fixo */}
-      <header className="sticky top-0 z-50 bg-card border-b-2 border-primary/20 shadow-lg">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-primary to-primary/80 shadow-xl">
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary text-xl font-bold text-primary-foreground shadow-md">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm text-xl font-bold text-white shadow-lg border border-white/30">
                 Q!
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white flex items-center gap-2">
                   Painel de Pedidos
                   {pendingCount > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500 text-white text-sm"
+                      className="flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-400 text-yellow-900 text-sm font-bold shadow-md"
                     >
                       <Bell className="h-3.5 w-3.5" />
                       {pendingCount} {pendingCount === 1 ? "novo" : "novos"}
                     </motion.span>
                   )}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  Q!delícia Pizzaria & Esfiharia
-                  <span className="ml-2 text-xs text-green-600">● Sincronizado em tempo real</span>
+                <p className="text-sm text-white/80">
+                  Q!delícia Açaí & Sorvetes
+                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-green-300">
+                    <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+                    Sincronizado em tempo real
+                  </span>
                 </p>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="icon"
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 title={soundEnabled ? "Som ativado" : "Som desativado"}
+                className="text-white hover:bg-white/20"
               >
                 {soundEnabled ? (
-                  <Volume2 className="h-4 w-4 text-primary" />
+                  <Volume2 className="h-4 w-4" />
                 ) : (
-                  <VolumeX className="h-4 w-4 text-muted-foreground" />
+                  <VolumeX className="h-4 w-4" />
                 )}
               </Button>
               <Button 
-                variant="outline" 
+                variant="ghost" 
                 size="sm" 
                 onClick={() => fetchOrders()}
-                className="gap-2"
+                className="gap-2 text-white hover:bg-white/20"
                 disabled={loading}
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -154,7 +158,7 @@ const AdminOrdersPage = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={handleLogout}
-                className="gap-2 text-destructive hover:text-destructive"
+                className="gap-2 text-white hover:bg-red-500/30"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Sair</span>
@@ -169,14 +173,16 @@ const AdminOrdersPage = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/20"
+          className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 shadow-sm"
         >
-          <h2 className="font-semibold text-foreground mb-2">📋 Como usar o painel:</h2>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li><span className="text-yellow-600 font-medium">🔴 Novos pedidos</span> aparecem primeiro e piscam para chamar atenção</li>
-            <li>Clique no botão de ação para <span className="font-medium">avançar o status</span> do pedido</li>
-            <li>Use os <span className="font-medium">filtros</span> abaixo para ver apenas pedidos específicos</li>
-            <li>O fluxo é: <span className="font-medium">Novo → Preparando → Pronto → Em Rota → Entregue</span></li>
+          <h2 className="font-bold text-foreground mb-3 flex items-center gap-2">
+            <span className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">📋</span>
+            Como usar o painel
+          </h2>
+          <ul className="text-sm text-muted-foreground space-y-2 ml-10">
+            <li className="flex items-start gap-2"><span className="text-yellow-500">●</span> <span><strong className="text-yellow-600">Novos pedidos</strong> aparecem primeiro com destaque amarelo</span></li>
+            <li className="flex items-start gap-2"><span className="text-primary">●</span> <span>Clique no <strong>botão roxo</strong> para avançar o status do pedido</span></li>
+            <li className="flex items-start gap-2"><span className="text-blue-500">●</span> <span>Fluxo: <strong>Novo → Preparando → Pronto → Em Rota → Entregue</strong></span></li>
           </ul>
         </motion.div>
 
