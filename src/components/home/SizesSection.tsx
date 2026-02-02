@@ -14,7 +14,7 @@ export function SizesSection() {
         once: true
       }} className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Escolha o <span className="text-gradient text-primary-foreground">Tamanho</span>
+            Escolha o <span className="text-primary font-extrabold">Tamanho</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
             Todos os tamanhos incluem 3 complementos, 1 cobertura e 1 fruta grátis!

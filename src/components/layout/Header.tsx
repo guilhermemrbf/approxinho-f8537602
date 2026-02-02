@@ -55,8 +55,8 @@ export function Header() {
               Q!
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-foreground leading-none">Q!delícia</h1>
-              <p className="text-[10px] text-muted-foreground">Pizzaria & Esfiharia</p>
+              <h1 className="text-lg font-bold text-primary leading-none">Q!delícia</h1>
+              <p className="text-[10px] text-muted-foreground">Açaí & Sorvetes</p>
             </div>
           </Link>
 
