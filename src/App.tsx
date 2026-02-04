@@ -4,8 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
-import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
-import { ProtectedRoute } from "@/components/admin/ProtectedRoute";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { AdminProtectedRoute } from "@/components/admin/AdminProtectedRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import HomePage from "@/pages/HomePage";
 import BuilderPage from "@/pages/BuilderPage";
@@ -22,8 +22,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
-      <AdminAuthProvider>
+    <AuthProvider>
+      <CartProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -42,17 +42,17 @@ const App = () => (
               <Route
                 path="/admin/pedidos"
                 element={
-                  <ProtectedRoute>
+                  <AdminProtectedRoute>
                     <AdminOrdersPage />
-                  </ProtectedRoute>
+                  </AdminProtectedRoute>
                 }
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
-      </AdminAuthProvider>
-    </CartProvider>
+      </CartProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LogOut, RefreshCw, Bell, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { StatusFilter } from "@/components/admin/StatusFilter";
 import { OrderCard } from "@/components/admin/OrderCard";
@@ -11,14 +11,14 @@ import { useOrders, OrderStatus, Order } from "@/hooks/useOrders";
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
-  const { logout } = useAdminAuth();
+  const { signOut } = useAuth();
   const { orders, loading, fetchOrders, updateOrderStatus } = useOrders();
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate("/admin");
   };
 
