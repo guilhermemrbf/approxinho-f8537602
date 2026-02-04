@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered" | "cancelled";
 export type PaymentMethod = "pix" | "card" | "cash";
-
 export interface OrderItem {
   name: string;
   size: string;
@@ -51,6 +51,7 @@ export function useOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -101,6 +102,7 @@ export function useOrders() {
           payment_method: orderData.payment_method,
           payment_change_for: orderData.payment_change_for || null,
           notes: orderData.notes || null,
+          user_id: user?.id || null, // Link order to authenticated user
         }])
         .select()
         .single();
