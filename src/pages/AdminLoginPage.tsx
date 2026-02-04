@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Lock, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
+import { Lock, Eye, EyeOff, ArrowRight, Mail, UserPlus, LogIn, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,16 +14,22 @@ const loginSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
+const signupSchema = loginSchema.extend({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+});
+
 const AdminLoginPage = () => {
   const navigate = useNavigate();
-  const { signIn, user, isAdmin, isLoading, checkAdminRole } = useAuth();
+  const { signIn, signUp, user, isAdmin, isLoading, checkAdminRole } = useAuth();
   const { toast } = useToast();
   
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
 
   // Redirect if already logged in as admin
   useEffect(() => {
@@ -34,15 +40,20 @@ const AdminLoginPage = () => {
 
   const validateForm = () => {
     try {
-      loginSchema.parse({ email, password });
+      if (mode === "login") {
+        loginSchema.parse({ email, password });
+      } else {
+        signupSchema.parse({ email, password, name });
+      }
       setErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const fieldErrors: { email?: string; password?: string } = {};
+        const fieldErrors: { email?: string; password?: string; name?: string } = {};
         error.errors.forEach((err) => {
           if (err.path[0] === "email") fieldErrors.email = err.message;
           if (err.path[0] === "password") fieldErrors.password = err.message;
+          if (err.path[0] === "name") fieldErrors.name = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -58,7 +69,39 @@ const AdminLoginPage = () => {
     }
 
     setIsSubmitting(true);
+
+    if (mode === "signup") {
+      // Admin signup flow
+      const { error } = await signUp(email, password, name);
+      
+      if (error) {
+        let errorMessage = "Erro ao criar conta";
+        
+        if (error.message.includes("already registered")) {
+          errorMessage = "Este email já está cadastrado";
+        }
+        
+        toast({ 
+          title: "Erro no cadastro", 
+          description: errorMessage,
+          variant: "destructive" 
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      toast({
+        title: "Conta criada! 🎉",
+        description: "Verifique seu email para confirmar. Depois, um admin precisa conceder a role de administrador.",
+      });
+      setMode("login");
+      setPassword("");
+      setName("");
+      setIsSubmitting(false);
+      return;
+    }
     
+    // Login flow
     const { error } = await signIn(email, password);
     
     if (error) {
@@ -84,14 +127,14 @@ const AdminLoginPage = () => {
     
     if (hasAdminRole) {
       toast({ 
-        title: "Bem-vindo!", 
+        title: "Bem-vindo! 🛡️", 
         description: "Acesso administrativo liberado" 
       });
       navigate("/admin/pedidos");
     } else {
       toast({ 
         title: "Acesso negado", 
-        description: "Esta conta não possui permissão de administrador",
+        description: "Esta conta não possui permissão de administrador. Solicite a um admin existente.",
         variant: "destructive" 
       });
     }
@@ -118,14 +161,60 @@ const AdminLoginPage = () => {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4">
-              <Lock className="h-8 w-8 text-primary-foreground" />
+              <Shield className="h-8 w-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Área Administrativa</h1>
             <p className="text-muted-foreground mt-1">Q!delícia Delivery</p>
           </div>
 
+          {/* Mode Toggle */}
+          <div className="flex bg-muted rounded-lg p-1 mb-6">
+            <button
+              type="button"
+              onClick={() => { setMode("login"); setErrors({}); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                mode === "login" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <LogIn className="h-4 w-4" />
+              Entrar
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode("signup"); setErrors({}); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+                mode === "signup" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <UserPlus className="h-4 w-4" />
+              Cadastrar
+            </button>
+          </div>
+
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === "signup" && (
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="Seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={errors.name ? "border-destructive" : ""}
+                  autoComplete="name"
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -156,7 +245,7 @@ const AdminLoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
-                  autoComplete="current-password"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
                 />
                 <button
                   type="button"
@@ -183,15 +272,26 @@ const AdminLoginPage = () => {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                "Verificando..."
+                mode === "login" ? "Verificando..." : "Criando conta..."
               ) : (
                 <>
-                  Entrar
+                  {mode === "login" ? "Entrar" : "Criar conta"}
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
             </Button>
           </form>
+
+          {/* Info */}
+          {mode === "signup" && (
+            <div className="mt-6 p-4 rounded-xl bg-accent/50 text-sm">
+              <p className="font-semibold text-foreground mb-2">⚠️ Importante:</p>
+              <p className="text-muted-foreground">
+                Após criar a conta, um administrador existente precisa conceder a role de admin 
+                via backend para você acessar o painel.
+              </p>
+            </div>
+          )}
 
           {/* Footer */}
           <p className="text-center text-xs text-muted-foreground mt-6">
