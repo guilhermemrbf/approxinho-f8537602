@@ -1,27 +1,136 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+});
+
+const signupSchema = loginSchema.extend({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+});
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+  const { signIn, signUp, user, isLoading } = useAuth();
+  const { toast } = useToast();
+  
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: isLogin ? "Login realizado!" : "Cadastro realizado!",
-      description: "Bem-vindo ao Q!delícia 🍇",
-    });
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate("/");
+    }
+  }, [user, isLoading, navigate]);
+
+  const validateForm = () => {
+    try {
+      if (isLogin) {
+        loginSchema.parse({ email, password });
+      } else {
+        signupSchema.parse({ email, password, name });
+      }
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: { email?: string; password?: string; name?: string } = {};
+        error.errors.forEach((err) => {
+          if (err.path[0] === "email") fieldErrors.email = err.message;
+          if (err.path[0] === "password") fieldErrors.password = err.message;
+          if (err.path[0] === "name") fieldErrors.name = err.message;
+        });
+        setErrors(fieldErrors);
+      }
+      return false;
+    }
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    if (isLogin) {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        let errorMessage = "Erro ao fazer login";
+        
+        if (error.message.includes("Invalid login credentials")) {
+          errorMessage = "Email ou senha incorretos";
+        } else if (error.message.includes("Email not confirmed")) {
+          errorMessage = "Por favor, confirme seu email antes de fazer login";
+        }
+        
+        toast({ 
+          title: "Erro de autenticação", 
+          description: errorMessage,
+          variant: "destructive" 
+        });
+      } else {
+        toast({
+          title: "Bem-vindo! 🍇",
+          description: "Login realizado com sucesso",
+        });
+        navigate("/");
+      }
+    } else {
+      const { error } = await signUp(email, password, name);
+      
+      if (error) {
+        let errorMessage = "Erro ao criar conta";
+        
+        if (error.message.includes("already registered")) {
+          errorMessage = "Este email já está cadastrado";
+        }
+        
+        toast({ 
+          title: "Erro no cadastro", 
+          description: errorMessage,
+          variant: "destructive" 
+        });
+      } else {
+        toast({
+          title: "Conta criada! 🎉",
+          description: "Verifique seu email para confirmar o cadastro",
+        });
+        setIsLogin(true);
+        setEmail("");
+        setPassword("");
+        setName("");
+      }
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
@@ -61,10 +170,12 @@ const LoginPage = () => {
                     placeholder="Seu nome"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
-                    required
+                    className={`pl-10 ${errors.name ? "border-destructive" : ""}`}
                   />
                 </div>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name}</p>
+                )}
               </div>
             )}
 
@@ -78,10 +189,13 @@ const LoginPage = () => {
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
+                  className={`pl-10 ${errors.email ? "border-destructive" : ""}`}
+                  autoComplete="email"
                 />
               </div>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -94,30 +208,40 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  required
+                  className={`pl-10 pr-10 ${errors.password ? "border-destructive" : ""}`}
+                  autoComplete={isLogin ? "current-password" : "new-password"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password}</p>
+              )}
             </div>
 
-            {isLogin && (
-              <div className="text-right">
-                <a href="#" className="text-sm text-primary hover:underline">
-                  Esqueceu a senha?
-                </a>
-              </div>
-            )}
-
-            <Button type="submit" variant="hero" size="lg" className="w-full">
-              {isLogin ? "Entrar" : "Criar conta"}
-              <ArrowRight className="h-4 w-4 ml-2" />
+            <Button 
+              type="submit" 
+              variant="hero" 
+              size="lg" 
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {isLogin ? "Entrando..." : "Criando conta..."}
+                </>
+              ) : (
+                <>
+                  {isLogin ? "Entrar" : "Criar conta"}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </>
+              )}
             </Button>
           </form>
 
@@ -126,7 +250,10 @@ const LoginPage = () => {
           <p className="text-center text-sm text-muted-foreground">
             {isLogin ? "Não tem uma conta?" : "Já tem uma conta?"}{" "}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setErrors({});
+              }}
               className="text-primary font-semibold hover:underline"
             >
               {isLogin ? "Cadastre-se" : "Entre"}
