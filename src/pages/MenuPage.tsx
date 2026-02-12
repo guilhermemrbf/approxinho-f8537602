@@ -15,7 +15,7 @@ const MenuPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-bold text-foreground sm:text-4xl">
 
-            Nosso <span className="text-gradient text-primary-foreground">Cardápio</span>
+            Nosso <span className="text-gradient">Cardápio</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
