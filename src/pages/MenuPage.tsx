@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { sizes, flavors, complements, toppings, fruits } from "@/data/menu";
+import { sizes, flavors, complements, toppings, fruits, creams, extras } from "@/data/menu";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -51,9 +51,9 @@ const MenuPage = () => {
         {/* Sizes */}
         <section className="mb-12">
           <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-            🍇 Tamanhos
+            🍇 Monte do Seu Jeito
           </h2>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {sizes.map((size) => (
               <div
                 key={size.id}
@@ -69,9 +69,10 @@ const MenuPage = () => {
                   </p>
                 </div>
                 <div className="mt-3 text-xs text-muted-foreground space-y-0.5">
-                  <p>✓ {size.freeComplements} complementos grátis</p>
-                  <p>✓ {size.freeToppings} cobertura grátis</p>
-                  <p>✓ {size.freeFruits} fruta grátis</p>
+                  <p>✓ {size.freeComplements >= 99 ? "Acompanhamentos livres" : `${size.freeComplements} acomp. grátis`}</p>
+                  <p>✓ {size.freeFruits >= 99 ? "Frutas livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""} grátis`}</p>
+                  <p>✓ {size.freeToppings >= 99 ? "Caldas livres" : `${size.freeToppings} calda grátis`}</p>
+                  {size.freeCream && <p>✓ Creme grátis incluso</p>}
                 </div>
               </div>
             ))}
@@ -102,10 +103,10 @@ const MenuPage = () => {
         {/* Complements */}
         <section className="mb-12">
           <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
-            🎊 Complementos
+            🎊 Acompanhamentos
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
-            3 grátis inclusos • Adicional: R$ 2,00 - R$ 3,00
+            Inclusos conforme tamanho • Adicional: R$ 1,00
           </p>
           <div className="flex flex-wrap gap-2">
             {complements.map((c) => (
@@ -119,13 +120,13 @@ const MenuPage = () => {
           </div>
         </section>
 
-        {/* Toppings */}
+        {/* Toppings / Caldas */}
         <section className="mb-12">
           <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
-            🍫 Coberturas
+            🍫 Caldas
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
-            1 grátis inclusa • Adicional: R$ 2,00
+            1 grátis inclusa • Adicional: R$ 1,00
           </p>
           <div className="flex flex-wrap gap-2">
             {toppings.map((t) => (
@@ -145,7 +146,7 @@ const MenuPage = () => {
             🍓 Frutas
           </h2>
           <p className="text-sm text-muted-foreground mb-6">
-            1 grátis inclusa • Adicional: R$ 3,00
+            Inclusos conforme tamanho • Adicional: R$ 1,00
           </p>
           <div className="flex flex-wrap gap-3">
             {fruits.map((f) => (
@@ -156,6 +157,50 @@ const MenuPage = () => {
                 <span className="text-2xl">{f.icon}</span>
                 {f.name}
               </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Creams */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+            🍨 Cremes / Mousse
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Acréscimo: R$ 2,00 • Grátis no 1.000ml
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {creams.map((c) => (
+              <span
+                key={c.id}
+                className="px-4 py-3 rounded-xl bg-card border text-sm flex items-center gap-2 shadow-card"
+              >
+                <span className="text-2xl">{c.icon}</span>
+                {c.name}
+              </span>
+            ))}
+          </div>
+        </section>
+
+        {/* Extras / Adicionais */}
+        <section className="mb-12">
+          <h2 className="text-xl font-bold text-foreground mb-2 flex items-center gap-2">
+            🍬 Adicionais
+          </h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {extras.map((e) => (
+              <div
+                key={e.id}
+                className="bg-card rounded-xl border p-4 shadow-card flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{e.icon}</span>
+                  <span className="font-medium">{e.name}</span>
+                </div>
+                <span className="font-bold text-primary">
+                  R$ {e.price.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
             ))}
           </div>
         </section>

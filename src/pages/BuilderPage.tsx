@@ -23,8 +23,8 @@ type Step = "size" | "flavor" | "complements" | "toppings" | "fruits" | "summary
 const steps: { key: Step; label: string; emoji: string }[] = [
   { key: "size", label: "Tamanho", emoji: "📏" },
   { key: "flavor", label: "Sabor", emoji: "🍇" },
-  { key: "complements", label: "Complementos", emoji: "🍫" },
-  { key: "toppings", label: "Coberturas", emoji: "🍯" },
+  { key: "complements", label: "Acompanhamentos", emoji: "🍫" },
+  { key: "toppings", label: "Caldas", emoji: "🍯" },
   { key: "fruits", label: "Frutas", emoji: "🍓" },
   { key: "summary", label: "Resumo", emoji: "✨" },
 ];
@@ -245,7 +245,7 @@ const BuilderPage = () => {
               <div className="text-center px-2">
                 <h2 className="text-xl md:text-2xl font-bold">Escolha o Tamanho</h2>
                 <p className="text-sm md:text-base text-muted-foreground mt-1 md:mt-2">
-                  Todos incluem complementos, cobertura e fruta grátis!
+                  Acompanhamentos, caldas e frutas inclusos conforme o tamanho!
                 </p>
               </div>
 
@@ -271,7 +271,7 @@ const BuilderPage = () => {
                     )}
                     <div
                       className={`mx-auto rounded-full gradient-açai flex items-center justify-center text-2xl md:text-3xl shadow-md mb-3 md:mb-4 ${
-                        size.ml === 300 ? "h-14 w-14 md:h-16 md:w-16" : size.ml === 500 ? "h-16 w-16 md:h-20 md:w-20" : "h-20 w-20 md:h-24 md:w-24"
+                        size.ml <= 300 ? "h-14 w-14 md:h-16 md:w-16" : size.ml <= 500 ? "h-16 w-16 md:h-20 md:w-20" : "h-20 w-20 md:h-24 md:w-24"
                       }`}
                     >
                       🍇
@@ -282,9 +282,10 @@ const BuilderPage = () => {
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
                     <div className="mt-2 md:mt-3 text-[11px] md:text-xs text-muted-foreground space-y-0.5">
-                      <p>✓ {size.freeComplements} complementos</p>
-                      <p>✓ {size.freeToppings} cobertura</p>
-                      <p>✓ {size.freeFruits} fruta</p>
+                      <p>✓ {size.freeComplements >= 99 ? "Acomp. livres" : `${size.freeComplements} acomp.`}</p>
+                      <p>✓ {size.freeToppings >= 99 ? "Caldas livres" : `${size.freeToppings} calda`}</p>
+                      <p>✓ {size.freeFruits >= 99 ? "Frutas livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""}`}</p>
+                      {size.freeCream && <p>✓ Creme grátis</p>}
                     </div>
                   </button>
                 ))}
@@ -353,7 +354,7 @@ const BuilderPage = () => {
               className="space-y-4 md:space-y-6"
             >
               <div className="text-center px-2">
-                <h2 className="text-xl md:text-2xl font-bold">Escolha os Complementos</h2>
+                <h2 className="text-xl md:text-2xl font-bold">Escolha os Acompanhamentos</h2>
                 {freeComplementsLeft > 0 && (
                   <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
                     <span className="text-success font-bold text-sm">{freeComplementsLeft} GRÁTIS</span>
@@ -361,7 +362,7 @@ const BuilderPage = () => {
                   </div>
                 )}
                 <p className="text-xs md:text-sm text-muted-foreground mt-2">
-                  Adicionais: R$ 2,00 cada
+                  Adicionais: R$ 1,00 cada
                 </p>
               </div>
 
@@ -417,7 +418,7 @@ const BuilderPage = () => {
               className="space-y-4 md:space-y-6"
             >
               <div className="text-center px-2">
-                <h2 className="text-xl md:text-2xl font-bold">Escolha as Coberturas</h2>
+                <h2 className="text-xl md:text-2xl font-bold">Escolha as Caldas</h2>
                 {freeToppingsLeft > 0 && (
                   <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-success/10 border border-success/30">
                     <span className="text-success font-bold text-sm">{freeToppingsLeft} GRÁTIS</span>
@@ -425,7 +426,7 @@ const BuilderPage = () => {
                   </div>
                 )}
                 <p className="text-xs md:text-sm text-muted-foreground mt-2">
-                  Adicionais: R$ 2,00 cada
+                  Adicionais: R$ 1,00 cada
                 </p>
               </div>
 

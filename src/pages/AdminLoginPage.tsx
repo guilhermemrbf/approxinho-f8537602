@@ -164,7 +164,7 @@ const AdminLoginPage = () => {
               <Shield className="h-8 w-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Área Administrativa</h1>
-            <p className="text-muted-foreground mt-1">Q!delícia Delivery</p>
+            <p className="text-muted-foreground mt-1">Açaí Ohana Delivery</p>
           </div>
 
           {/* Mode Toggle */}
@@ -221,7 +221,7 @@ const AdminLoginPage = () => {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@qdelicia.com"
+                  placeholder="admin@acaiohana.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={`pl-10 ${errors.email ? "border-destructive" : ""}`}

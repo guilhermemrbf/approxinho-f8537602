@@ -17,7 +17,7 @@ export function SizesSection() {
             Escolha o <span className="text-primary font-extrabold">Tamanho</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            Todos os tamanhos incluem 3 complementos, 1 cobertura e 1 fruta grátis!
+            De 200ml a 1 litro! Acompanhamentos, caldas e frutas inclusos conforme o tamanho.
           </p>
         </motion.div>
 
@@ -42,7 +42,7 @@ export function SizesSection() {
                   <div className="relative mx-auto mb-6 flex items-center justify-center">
                     <div className={`
                         rounded-full gradient-açai flex items-center justify-center text-4xl shadow-lg
-                        ${size.ml === 300 ? 'h-20 w-20' : size.ml === 500 ? 'h-24 w-24' : 'h-28 w-28'}
+                        ${size.ml <= 300 ? 'h-16 w-16' : size.ml <= 500 ? 'h-20 w-20' : size.ml <= 700 ? 'h-24 w-24' : 'h-28 w-28'}
                       `}>
                       🍇
                     </div>
@@ -58,9 +58,10 @@ export function SizesSection() {
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
                     <div className="mt-4 text-sm text-muted-foreground space-y-1">
-                      <p>✓ {size.freeComplements} complementos grátis</p>
-                      <p>✓ {size.freeToppings} cobertura grátis</p>
-                      <p>✓ {size.freeFruits} fruta grátis</p>
+                      <p>✓ {size.freeComplements >= 99 ? "Acomp. livres" : `${size.freeComplements} acomp. grátis`}</p>
+                      <p>✓ {size.freeToppings >= 99 ? "Caldas livres" : `${size.freeToppings} calda grátis`}</p>
+                      <p>✓ {size.freeFruits >= 99 ? "Frutas livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""} grátis`}</p>
+                      {size.freeCream && <p>✓ Creme grátis</p>}
                     </div>
                     <div className="mt-6 inline-flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all">
                       Escolher

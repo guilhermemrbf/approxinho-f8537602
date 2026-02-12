@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User, Settings } from "lucide-react";
+import logoOhana from "@/assets/logo-ohana.jpeg";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
@@ -51,12 +52,10 @@ export function Header() {
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary text-xl font-bold text-primary-foreground shadow-md">
-              Q!
-            </div>
+            <img src={logoOhana} alt="Açaí Ohana" className="h-10 w-10 rounded-xl object-cover shadow-md" />
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-primary leading-none">Q!delícia</h1>
-              <p className="text-[10px] text-muted-foreground">Açaí & Sorvetes</p>
+              <h1 className="text-lg font-bold text-primary leading-none">Açaí Ohana</h1>
+              <p className="text-[10px] text-muted-foreground">Açaiteria</p>
             </div>
           </Link>
 

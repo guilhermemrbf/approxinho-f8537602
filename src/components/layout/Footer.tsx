@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Phone, MapPin, Clock, Instagram, Facebook } from "lucide-react";
+import logoOhana from "@/assets/logo-ohana.jpeg";
 import { businessInfo } from "@/data/menu";
 
 export function Footer() {
@@ -10,12 +11,10 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl gradient-primary text-xl font-bold text-primary-foreground">
-                Q!
-              </div>
+              <img src={logoOhana} alt="Açaí Ohana" className="h-10 w-10 rounded-xl object-cover" />
               <div>
-                <h3 className="text-lg font-bold">Q!delícia</h3>
-                <p className="text-xs text-muted-foreground">Pizzaria & Esfiharia</p>
+                <h3 className="text-lg font-bold">Açaí Ohana</h3>
+                <p className="text-xs text-muted-foreground">Açaiteria</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -103,7 +102,7 @@ export function Footer() {
         <hr className="my-8 border-border" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© 2024 Q!delícia. Todos os direitos reservados.</p>
+          <p>© 2024 Açaí Ohana. Todos os direitos reservados.</p>
           <div className="flex gap-4">
             <Link to="/termos" className="hover:text-primary transition-colors">
               Termos de Uso
