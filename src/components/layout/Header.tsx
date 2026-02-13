@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User, Settings } from "lucide-react";
+import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User } from "lucide-react";
 import logoOhana from "@/assets/logo-ohana.jpeg";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -12,7 +12,6 @@ const navLinks = [
   { path: "/cardapio", label: "Cardápio" },
   { path: "/montar", label: "Monte seu Açaí" },
   { path: "/pedidos", label: "Meus Pedidos" },
-  { path: "/admin", label: "Admin", icon: Settings },
 ];
 
 export function Header() {
@@ -51,38 +50,37 @@ export function Header() {
       <div className="glass border-b">
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logoOhana} alt="Açaí Ohana" className="h-10 w-10 rounded-xl object-cover shadow-md" />
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-primary leading-none">Açaí Ohana</h1>
-              <p className="text-[10px] text-muted-foreground">Açaiteria</p>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logoOhana} alt="Açaí Ohana" className="h-11 w-11 rounded-full object-cover shadow-lg ring-2 ring-primary/30" />
+            <div>
+              <h1 className="text-lg font-extrabold leading-none">
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>Açaí</span>{" "}
+                <span className="text-foreground">Ohana</span>
+              </h1>
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Açaiteria & Delivery</p>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => {
-              const Icon = (link as any).icon;
-              return (
-                <Link key={link.path} to={link.path}>
-                  <Button
-                    variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
-                    size="sm"
-                    className="relative gap-1.5"
-                  >
-                    {Icon && <Icon className="h-4 w-4" />}
-                    {link.label}
-                    {(location.pathname === link.path || location.pathname.startsWith(link.path + "/")) && (
-                      <motion.div
-                        layoutId="nav-indicator"
-                        className="absolute inset-0 rounded-lg bg-primary -z-10"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                  </Button>
-                </Link>
-              );
-            })}
+            {navLinks.map((link) => (
+              <Link key={link.path} to={link.path}>
+                <Button
+                  variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
+                  size="sm"
+                  className="relative gap-1.5"
+                >
+                  {link.label}
+                  {(location.pathname === link.path || location.pathname.startsWith(link.path + "/")) && (
+                    <motion.div
+                      layoutId="nav-indicator"
+                      className="absolute inset-0 rounded-lg bg-primary -z-10"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </Button>
+              </Link>
+            ))}
           </nav>
 
           {/* Actions */}
@@ -134,24 +132,20 @@ export function Header() {
             className="md:hidden bg-card border-b shadow-lg"
           >
             <nav className="container py-4 flex flex-col gap-2">
-              {navLinks.map((link) => {
-                const Icon = (link as any).icon;
-                return (
-                  <Link
-                    key={link.path}
-                    to={link.path}
-                    onClick={() => setIsMenuOpen(false)}
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Button
+                    variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
+                    className="w-full justify-start gap-2"
                   >
-                    <Button
-                      variant={location.pathname === link.path || location.pathname.startsWith(link.path + "/") ? "default" : "ghost"}
-                      className="w-full justify-start gap-2"
-                    >
-                      {Icon && <Icon className="h-4 w-4" />}
-                      {link.label}
-                    </Button>
-                  </Link>
-                );
-              })}
+                    {link.label}
+                  </Button>
+                </Link>
+              ))}
               <hr className="my-2" />
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start gap-2">
