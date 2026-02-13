@@ -122,9 +122,9 @@ export const extras: Extra[] = [
 
 export const businessInfo = {
   name: "Açaí Ohana - Açaiteria",
-  address: "Rua São José, nº 198",
+  address: "Av. Duque de Caxias, 225",
   phone: "(74) 9 8144-8065",
   whatsapp: "5574981448065",
-  hours: "Quarta a Segunda, 15h às 23h",
+  hours: "Aberto todos os dias, 15h às 23h",
   deliveryFee: 5.0,
 };
