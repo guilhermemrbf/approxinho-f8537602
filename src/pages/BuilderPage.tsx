@@ -178,53 +178,71 @@ const BuilderPage = () => {
 
   return (
     <div className="min-h-screen bg-background pb-28 md:pb-32">
-      {/* Progress bar - Mobile Optimized */}
+      {/* Progress bar - Improved Design */}
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b shadow-sm" ref={contentRef}>
         <div className="container py-3 md:py-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl gradient-primary flex items-center justify-center">
-                <Sparkles className="h-4 w-4 md:h-5 md:w-5 text-white" />
+          {/* Header with price */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 md:h-12 md:w-12 rounded-full gradient-açai flex items-center justify-center shadow-lg">
+                <Sparkles className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-base md:text-lg font-bold text-foreground">Monte seu Açaí</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Personalize do seu jeito</p>
+                <h1 className="text-lg md:text-xl font-extrabold text-foreground">Monte seu Açaí</h1>
+                <p className="text-xs text-muted-foreground">Personalize do seu jeito</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground">Total</p>
-              <span className="text-lg md:text-xl font-bold text-primary">
+            <div className="text-right bg-primary/10 px-4 py-2 rounded-xl">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Total</p>
+              <span className="text-xl md:text-2xl font-extrabold text-primary">
                 R$ {totalPrice.toFixed(2).replace(".", ",")}
               </span>
             </div>
           </div>
           
-          {/* Progress Steps - Mobile Optimized */}
-          <div className="flex gap-1 mb-2">
-            {steps.map((step, index) => (
-              <div
-                key={step.key}
-                className={`h-1.5 md:h-2 flex-1 rounded-full transition-all duration-300 ${
-                  index < currentStepIndex 
-                    ? "bg-primary" 
-                    : index === currentStepIndex 
-                    ? "bg-primary animate-pulse" 
-                    : "bg-muted"
-                }`}
-              />
-            ))}
-          </div>
-          
-          {/* Current Step Indicator - Mobile */}
-          <div className="flex items-center justify-center gap-2 py-1">
-            <span className="text-lg">{steps[currentStepIndex].emoji}</span>
-            <span className="text-sm font-semibold text-primary">
-              {steps[currentStepIndex].label}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              ({currentStepIndex + 1}/{steps.length})
-            </span>
+          {/* Step Indicators - Clickable circles */}
+          <div className="flex items-center justify-between relative">
+            {/* Progress line behind */}
+            <div className="absolute top-4 left-6 right-6 h-0.5 bg-muted" />
+            <div 
+              className="absolute top-4 left-6 h-0.5 bg-primary transition-all duration-500"
+              style={{ width: `calc(${(currentStepIndex / (steps.length - 1)) * 100}% - 48px)` }}
+            />
+            
+            {steps.map((step, index) => {
+              const isComplete = index < currentStepIndex;
+              const isCurrent = index === currentStepIndex;
+              const isClickable = index < currentStepIndex;
+              
+              return (
+                <button
+                  key={step.key}
+                  onClick={() => {
+                    if (isClickable) {
+                      setCurrentStep(step.key);
+                      setTimeout(scrollToTop, 50);
+                    }
+                  }}
+                  disabled={!isClickable}
+                  className="flex flex-col items-center gap-1 relative z-10"
+                >
+                  <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm transition-all duration-300 ${
+                    isComplete 
+                      ? "bg-primary text-primary-foreground shadow-md cursor-pointer" 
+                      : isCurrent 
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 ring-4 ring-primary/20 scale-110" 
+                      : "bg-muted text-muted-foreground"
+                  }`}>
+                    {isComplete ? <Check className="h-4 w-4" /> : step.emoji}
+                  </div>
+                  <span className={`text-[9px] md:text-[10px] font-medium leading-tight text-center max-w-[60px] ${
+                    isCurrent ? "text-primary font-bold" : isComplete ? "text-foreground" : "text-muted-foreground"
+                  }`}>
+                    {step.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -249,43 +267,43 @@ const BuilderPage = () => {
                 </p>
               </div>
 
-              <div className="grid gap-3 md:gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 md:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
                 {sizes.map((size) => (
                   <button
                     key={size.id}
                     onClick={() => setSelectedSize(size)}
-                    className={`relative p-4 md:p-6 rounded-2xl border-2 transition-all active:scale-[0.98] ${
+                    className={`relative p-4 md:p-5 rounded-2xl border-2 transition-all active:scale-[0.97] flex flex-col items-center text-center ${
                       selectedSize?.id === size.id
-                        ? "border-primary bg-primary/5 shadow-lg shadow-primary/20"
-                        : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
+                        ? "border-primary bg-primary/5 shadow-xl shadow-primary/20 scale-[1.02]"
+                        : "border-border bg-card hover:border-primary/40 hover:shadow-md active:bg-primary/5"
                     }`}
                   >
                     {selectedSize?.id === size.id && (
                       <motion.div 
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-2 right-2 md:top-3 md:right-3 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
+                        className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
                       >
                         <Check className="h-4 w-4 text-primary-foreground" />
                       </motion.div>
                     )}
                     <div
-                      className={`mx-auto rounded-full gradient-açai flex items-center justify-center text-2xl md:text-3xl shadow-md mb-3 md:mb-4 ${
-                        size.ml <= 300 ? "h-14 w-14 md:h-16 md:w-16" : size.ml <= 500 ? "h-16 w-16 md:h-20 md:w-20" : "h-20 w-20 md:h-24 md:w-24"
+                      className={`rounded-full gradient-açai flex items-center justify-center text-2xl shadow-lg mb-3 ${
+                        size.ml <= 300 ? "h-14 w-14" : size.ml <= 500 ? "h-16 w-16" : "h-20 w-20"
                       }`}
                     >
                       🍇
                     </div>
-                    <h3 className="font-bold text-base md:text-lg">{size.name}</h3>
-                    <p className="text-xl md:text-2xl font-extrabold text-primary">{size.ml}ml</p>
-                    <p className="text-lg md:text-xl font-bold mt-1 md:mt-2">
+                    <h3 className="font-bold text-sm md:text-base">{size.name}</h3>
+                    <p className="text-lg md:text-xl font-extrabold text-primary">{size.ml}ml</p>
+                    <p className="text-base font-bold mt-1">
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
-                    <div className="mt-2 md:mt-3 text-[11px] md:text-xs text-muted-foreground space-y-0.5">
+                    <div className="mt-2 text-[10px] md:text-xs text-muted-foreground space-y-0.5 w-full">
                       <p>✓ {size.freeComplements >= 99 ? "Acomp. livres" : `${size.freeComplements} acomp.`}</p>
                       <p>✓ {size.freeToppings >= 99 ? "Caldas livres" : `${size.freeToppings} calda`}</p>
                       <p>✓ {size.freeFruits >= 99 ? "Frutas livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""}`}</p>
-                      {size.freeCream && <p>✓ Creme grátis</p>}
+                      {size.freeCream && <p className="text-primary font-semibold">✓ Creme grátis</p>}
                     </div>
                   </button>
                 ))}
@@ -686,8 +704,8 @@ const BuilderPage = () => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom navigation - Mobile Optimized */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t shadow-xl safe-area-bottom">
+      {/* Bottom navigation - Improved */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-2xl safe-area-bottom">
         <div className="container py-3 md:py-4">
           <div className="flex items-center gap-3">
             <Button
@@ -695,7 +713,7 @@ const BuilderPage = () => {
               size="lg"
               onClick={goPrev}
               disabled={currentStepIndex === 0}
-              className="h-12 md:h-14 px-4 md:px-6 flex-shrink-0"
+              className="h-12 md:h-14 px-4 md:px-6 flex-shrink-0 rounded-xl"
             >
               <ArrowLeft className="h-5 w-5" />
               <span className="hidden sm:inline ml-2">Voltar</span>
@@ -707,7 +725,7 @@ const BuilderPage = () => {
                 size="lg"
                 onClick={goNext}
                 disabled={!canProceed()}
-                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2"
+                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2 rounded-xl shadow-lg shadow-primary/30"
               >
                 Continuar
                 <ArrowRight className="h-5 w-5" />
@@ -717,7 +735,7 @@ const BuilderPage = () => {
                 variant="hero"
                 size="lg"
                 onClick={handleAddToCart}
-                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2"
+                className="h-12 md:h-14 flex-1 text-base md:text-lg font-bold gap-2 rounded-xl shadow-lg shadow-primary/30"
               >
                 <ShoppingCart className="h-5 w-5" />
                 <span className="hidden sm:inline">Adicionar ao</span> Carrinho
