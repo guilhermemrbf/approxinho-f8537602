@@ -1,4 +1,4 @@
-// Dados do cardápio Açaí Ohana - Açaiteria
+// Dados do cardápio QUERO AÇAI 💜💚
 
 export interface Size {
   id: string;
@@ -121,7 +121,7 @@ export const extras: Extra[] = [
 ];
 
 export const businessInfo = {
-  name: "Açaí Ohana - Açaiteria",
+  name: "QUERO AÇAI 💜💚",
   address: "Av. Duque de Caxias, 225",
   phone: "(74) 9 8144-8065",
   whatsapp: "5574981448065",
