@@ -16,6 +16,7 @@ const MenuPage = () => {
             className="text-3xl font-bold text-foreground sm:text-4xl">
 
             Nosso <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-primary)' }}>Cardápio</span>
+          
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
