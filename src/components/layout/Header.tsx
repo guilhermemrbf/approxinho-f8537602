@@ -51,13 +51,14 @@ export function Header() {
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={logoOhana} alt="Açaí Ohana" className="h-11 w-11 rounded-full object-cover shadow-lg ring-2 ring-primary/30" />
+            <img src={logoOhana} alt="QUERO AÇAI" className="h-11 w-11 rounded-full object-cover shadow-lg ring-2 ring-primary/30" />
             <div>
               <h1 className="text-lg font-extrabold leading-none">
-                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>Açaí</span>{" "}
-                <span className="text-foreground">Ohana</span>
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>QUERO</span>{" "}
+                <span className="text-foreground">AÇAI</span>{" "}
+                <span>💜💚</span>
               </h1>
-              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Açaiteria & Delivery</p>
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Delivery</p>
             </div>
           </Link>
 
