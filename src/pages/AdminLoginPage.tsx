@@ -164,7 +164,7 @@ const AdminLoginPage = () => {
               <Shield className="h-8 w-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Área Administrativa</h1>
-            <p className="text-muted-foreground mt-1">QUERO AÇAI 💜💚 Delivery</p>
+            <p className="text-muted-foreground mt-1">QUERO AÇAI Delivery</p>
           </div>
 
           {/* Mode Toggle */}

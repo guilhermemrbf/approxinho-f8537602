@@ -47,7 +47,7 @@ const CheckoutPage = () => {
   const grandTotal = totalPrice + deliveryFee;
 
   // Mock PIX code - será substituído pela integração Mercado Pago
-  const mockPixCode = "00020126580014br.gov.bcb.pix0136queroacai-pix-key-placeholder5204000053039865802BR5925QUERO ACAI DELIVERY6008SAOPAULO62070503***6304ABCD";
+  const mockPixCode = "00020126580014br.gov.bcb.pix0136queroacai-pix-key-placeholder5204000053039865802BR5925QUERO ACAI DELIVERY6008UIBAI62070503***6304ABCD";
 
   if (items.length === 0) {
     return (
