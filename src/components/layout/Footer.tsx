@@ -110,6 +110,9 @@ export function Footer() {
             <Link to="/privacidade" className="hover:text-primary transition-colors">
               Política de Privacidade
             </Link>
+            <Link to="/admin" className="opacity-30 hover:opacity-60 transition-opacity text-[10px]">
+              •
+            </Link>
           </div>
         </div>
       </div>
