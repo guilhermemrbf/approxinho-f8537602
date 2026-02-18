@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Copy, CreditCard, Banknote, QrCode, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, CreditCard, Banknote, QrCode, Loader2, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,34 @@ interface CustomerInfo {
   notes: string;
 }
 
+/**
+ * ==============================================
+ * INTEGRAÇÃO DE PAGAMENTO - PONTOS DE CONEXÃO
+ * ==============================================
+ * 
+ * Para integrar com Mercado Pago (ou outro gateway):
+ * 
+ * 1. PIX:
+ *    - Substituir handleGeneratePix() para chamar a Edge Function
+ *    - A Edge Function cria o pagamento via API do MP e retorna QR code
+ *    - Usar o qr_code_base64 retornado para exibir o QR real
+ *    - Implementar polling com getPaymentStatus() para confirmar pagamento
+ * 
+ * 2. CARTÃO (Crédito/Débito):
+ *    - Integrar SDK do Mercado Pago para tokenização do cartão
+ *    - Ou usar Checkout Pro (redirect) via createPreference()
+ *    - handleCardPayment() deve enviar o token para a Edge Function
+ * 
+ * 3. WEBHOOK:
+ *    - Criar Edge Function para receber notificações do MP
+ *    - Atualizar status do pedido automaticamente quando pagamento aprovado
+ * 
+ * Arquivos relacionados:
+ *    - src/lib/mercadopago.ts (client-side types e helpers)
+ *    - supabase/functions/mercadopago/ (criar Edge Function)
+ * ==============================================
+ */
+
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
@@ -33,6 +61,9 @@ const CheckoutPage = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [isProcessing, setIsProcessing] = useState(false);
   const [pixGenerated, setPixGenerated] = useState(false);
+  const [pixCode, setPixCode] = useState("");
+  const [pixQrBase64, setPixQrBase64] = useState("");
+  const [paymentId, setPaymentId] = useState<string | null>(null);
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: "",
     phone: "",
@@ -45,9 +76,6 @@ const CheckoutPage = () => {
 
   const deliveryFee = businessInfo.deliveryFee;
   const grandTotal = totalPrice + deliveryFee;
-
-  // Mock PIX code - será substituído pela integração Mercado Pago
-  const mockPixCode = "00020126580014br.gov.bcb.pix0136queroacai-pix-key-placeholder5204000053039865802BR5925QUERO ACAI DELIVERY6008UIBAI62070503***6304ABCD";
 
   if (items.length === 0) {
     return (
@@ -68,13 +96,20 @@ const CheckoutPage = () => {
     setCustomerInfo((prev) => ({ ...prev, [field]: value }));
   };
 
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+
   const validateForm = () => {
     if (!customerInfo.name.trim()) {
       toast({ title: "Nome obrigatório", variant: "destructive" });
       return false;
     }
-    if (!customerInfo.phone.trim()) {
-      toast({ title: "Telefone obrigatório", variant: "destructive" });
+    if (!customerInfo.phone.trim() || customerInfo.phone.replace(/\D/g, "").length < 10) {
+      toast({ title: "Telefone válido obrigatório", variant: "destructive" });
       return false;
     }
     if (!customerInfo.address.trim()) {
@@ -94,7 +129,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const submitOrder = async () => {
+  const buildOrderData = () => {
     const orderItems = items.map((item) => ({
       name: item.flavor.name,
       size: item.size.name,
@@ -115,7 +150,7 @@ const CheckoutPage = () => {
       ? `${customerInfo.address} (${customerInfo.reference})`
       : customerInfo.address;
 
-    const order = await createOrder({
+    return {
       customer_name: customerInfo.name,
       customer_phone: customerInfo.phone,
       delivery_address: fullAddress,
@@ -127,30 +162,77 @@ const CheckoutPage = () => {
       payment_method: mapPaymentMethod(paymentMethod),
       payment_change_for: changeValue,
       notes: customerInfo.notes || undefined,
-    });
+    };
+  };
 
+  const submitOrder = async () => {
+    const order = await createOrder(buildOrderData());
     return order;
   };
 
+  /**
+   * PONTO DE INTEGRAÇÃO: PIX
+   * 
+   * Substituir o mock abaixo por:
+   * ```
+   * const mp = new MercadoPagoClient();
+   * const payment = await mp.createPixPayment({
+   *   amount: grandTotal,
+   *   description: `Pedido QUERO AÇAI - ${items.length} item(s)`,
+   *   payer: { email: "cliente@email.com", firstName: customerInfo.name }
+   * });
+   * setPixCode(payment.point_of_interaction.transaction_data.qr_code);
+   * setPixQrBase64(payment.point_of_interaction.transaction_data.qr_code_base64);
+   * setPaymentId(payment.id);
+   * ```
+   */
   const handleGeneratePix = async () => {
     if (!validateForm()) return;
     
     setIsProcessing(true);
     
-    // TODO: Integrar com Mercado Pago API
+    // MOCK: Simula geração do PIX - substituir pela integração real
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
+    const mockCode = "00020126580014br.gov.bcb.pix0136queroacai-pix-key-placeholder5204000053039865802BR5925QUERO ACAI DELIVERY6008CIDADE62070503***6304ABCD";
+    setPixCode(mockCode);
+    setPixQrBase64(""); // Será preenchido pela API real
+    setPaymentId(null); // Será preenchido pela API real
     setPixGenerated(true);
     setIsProcessing(false);
     
-    toast({ title: "PIX gerado com sucesso!", description: "Escaneie o QR Code ou copie o código" });
+    toast({ title: "PIX gerado com sucesso!", description: "Copie o código e pague no app do seu banco" });
   };
 
+  /**
+   * PONTO DE INTEGRAÇÃO: CARTÃO
+   * 
+   * Opção A - Checkout Pro (redirect):
+   * ```
+   * const mp = new MercadoPagoClient();
+   * const preference = await mp.createPreference({
+   *   items: items.map(i => ({
+   *     id: i.id, title: i.flavor.name, quantity: i.quantity, unit_price: i.totalPrice
+   *   })),
+   *   back_urls: {
+   *     success: `${window.location.origin}/pedidos`,
+   *     failure: `${window.location.origin}/checkout`,
+   *     pending: `${window.location.origin}/pedidos`
+   *   }
+   * });
+   * window.location.href = preference.init_point;
+   * ```
+   * 
+   * Opção B - Checkout Transparente:
+   * Requer SDK do MP no frontend + Edge Function para processar token
+   */
   const handleCardPayment = async () => {
     if (!validateForm()) return;
     
     setIsProcessing(true);
     
+    // TODO: Integrar com Mercado Pago
+    // Por enquanto, cria o pedido com status pendente de pagamento
     const order = await submitOrder();
     
     if (order) {
@@ -177,63 +259,78 @@ const CheckoutPage = () => {
     }
     
     setIsProcessing(true);
-    
     const order = await submitOrder();
-    
     if (order) {
       clearCart();
       navigate("/pedidos");
     }
-    
     setIsProcessing(false);
   };
 
   const copyPixCode = () => {
-    navigator.clipboard.writeText(mockPixCode);
+    navigator.clipboard.writeText(pixCode);
     toast({ title: "Código PIX copiado!" });
   };
 
+  /**
+   * PONTO DE INTEGRAÇÃO: Confirmação PIX
+   * 
+   * Quando integrado, substituir por polling:
+   * ```
+   * const checkPayment = async () => {
+   *   if (!paymentId) return;
+   *   const status = await mp.getPaymentStatus(paymentId);
+   *   if (status.status === 'approved') {
+   *     await submitOrder();
+   *     clearCart();
+   *     navigate("/pedidos");
+   *   }
+   * };
+   * // Poll a cada 5 segundos
+   * const interval = setInterval(checkPayment, 5000);
+   * ```
+   */
   const confirmPixPayment = async () => {
     setIsProcessing(true);
-    
     const order = await submitOrder();
-    
     if (order) {
       clearCart();
       navigate("/pedidos");
     }
-    
     setIsProcessing(false);
   };
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <div className="container py-6">
+      <div className="container py-4 sm:py-6">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
           <Link to="/carrinho">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="shrink-0">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Checkout</h1>
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Checkout</h1>
+            <p className="text-xs text-muted-foreground">{items.length} item(s) no pedido</p>
+          </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           {/* Formulário */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Dados do Cliente */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-card rounded-2xl border shadow-card p-6"
+              className="bg-card rounded-2xl border shadow-card p-4 sm:p-6"
             >
               <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
                 📍 Dados de Entrega
               </h2>
               
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
+              <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="name">Nome completo *</Label>
                   <Input
                     id="name"
@@ -243,17 +340,17 @@ const CheckoutPage = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="phone">Telefone / WhatsApp *</Label>
                   <Input
                     id="phone"
                     placeholder="(00) 00000-0000"
                     value={customerInfo.phone}
-                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    onChange={(e) => handleInputChange("phone", formatPhone(e.target.value))}
                   />
                 </div>
                 
-                <div className="space-y-2 sm:col-span-2">
+                <div className="space-y-1.5 sm:col-span-2">
                   <Label htmlFor="address">Endereço completo *</Label>
                   <Input
                     id="address"
@@ -263,7 +360,7 @@ const CheckoutPage = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="complement">Complemento</Label>
                   <Input
                     id="complement"
@@ -273,7 +370,7 @@ const CheckoutPage = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <Label htmlFor="reference">Ponto de referência</Label>
                   <Input
                     id="reference"
@@ -290,7 +387,7 @@ const CheckoutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-card rounded-2xl border shadow-card p-6"
+              className="bg-card rounded-2xl border shadow-card p-4 sm:p-6"
             >
               <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
                 💳 Forma de Pagamento
@@ -307,21 +404,21 @@ const CheckoutPage = () => {
                 {/* PIX */}
                 <label
                   htmlFor="pix"
-                  className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     paymentMethod === "pix"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
                 >
                   <RadioGroupItem value="pix" id="pix" />
-                  <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
                     <QrCode className="h-5 w-5 text-green-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">PIX</p>
-                    <p className="text-sm text-muted-foreground">Aprovação instantânea</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">PIX</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Aprovação instantânea</p>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-1 rounded-full shrink-0">
                     Recomendado
                   </span>
                 </label>
@@ -329,57 +426,57 @@ const CheckoutPage = () => {
                 {/* Cartão de Crédito */}
                 <label
                   htmlFor="credit"
-                  className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     paymentMethod === "credit"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
                 >
                   <RadioGroupItem value="credit" id="credit" />
-                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
                     <CreditCard className="h-5 w-5 text-blue-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Cartão de Crédito</p>
-                    <p className="text-sm text-muted-foreground">Parcele em até 12x</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Cartão de Crédito</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
                   </div>
                 </label>
 
                 {/* Cartão de Débito */}
                 <label
                   htmlFor="debit"
-                  className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     paymentMethod === "debit"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
                 >
                   <RadioGroupItem value="debit" id="debit" />
-                  <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
                     <CreditCard className="h-5 w-5 text-purple-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Cartão de Débito</p>
-                    <p className="text-sm text-muted-foreground">Débito na hora</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Cartão de Débito</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
                   </div>
                 </label>
 
                 {/* Dinheiro */}
                 <label
                   htmlFor="cash"
-                  className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                  className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border-2 cursor-pointer transition-all ${
                     paymentMethod === "cash"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/50"
                   }`}
                 >
                   <RadioGroupItem value="cash" id="cash" />
-                  <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center shrink-0">
                     <Banknote className="h-5 w-5 text-yellow-600" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Dinheiro</p>
-                    <p className="text-sm text-muted-foreground">Pagamento na entrega</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm sm:text-base">Dinheiro</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Pagamento na entrega</p>
                   </div>
                 </label>
               </RadioGroup>
@@ -412,26 +509,37 @@ const CheckoutPage = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   className="mt-6 pt-6 border-t text-center"
                 >
-                  <div className="bg-white p-4 rounded-xl inline-block mb-4">
-                    {/* Placeholder QR Code - será substituído pelo QR real do Mercado Pago */}
-                    <div className="h-48 w-48 bg-gradient-to-br from-muted to-muted-foreground/20 rounded-lg flex items-center justify-center">
-                      <QrCode className="h-24 w-24 text-foreground/50" />
-                    </div>
+                  {/* QR Code - será substituído pelo QR real */}
+                  <div className="bg-white p-4 rounded-xl inline-block mb-4 shadow-sm">
+                    {pixQrBase64 ? (
+                      <img src={`data:image/png;base64,${pixQrBase64}`} alt="QR Code PIX" className="h-48 w-48" />
+                    ) : (
+                      <div className="h-48 w-48 bg-gradient-to-br from-muted to-muted-foreground/20 rounded-lg flex flex-col items-center justify-center gap-2">
+                        <QrCode className="h-20 w-20 text-foreground/30" />
+                        <p className="text-xs text-muted-foreground">QR Code Simulado</p>
+                      </div>
+                    )}
                   </div>
                   
                   <p className="text-sm text-muted-foreground mb-3">
-                    Escaneie o QR Code ou copie o código abaixo
+                    Copie o código abaixo e pague no app do seu banco
                   </p>
                   
                   <div className="flex gap-2">
                     <Input
-                      value={mockPixCode}
+                      value={pixCode}
                       readOnly
                       className="text-xs font-mono"
                     />
-                    <Button variant="outline" size="icon" onClick={copyPixCode}>
+                    <Button variant="outline" size="icon" onClick={copyPixCode} className="shrink-0">
                       <Copy className="h-4 w-4" />
                     </Button>
+                  </div>
+
+                  {/* Timer indicativo */}
+                  <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>O código PIX expira em 30 minutos</span>
                   </div>
                   
                   <Button
@@ -445,11 +553,14 @@ const CheckoutPage = () => {
                     ) : (
                       <Check className="h-4 w-4 mr-2" />
                     )}
-                    Já paguei
+                    Já paguei - Confirmar Pedido
                   </Button>
                   
                   <p className="text-xs text-muted-foreground mt-2">
-                    O pagamento será verificado automaticamente
+                    {paymentId 
+                      ? "O pagamento será verificado automaticamente" 
+                      : "⚠️ Integração em desenvolvimento - pedido será criado como pendente"
+                    }
                   </p>
                 </motion.div>
               )}
@@ -460,14 +571,14 @@ const CheckoutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-card rounded-2xl border shadow-card p-6"
+              className="bg-card rounded-2xl border shadow-card p-4 sm:p-6"
             >
               <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
                 📝 Observações
               </h2>
               <Textarea
                 placeholder="Alguma observação sobre o pedido? (alergia, preferências, etc.)"
-                className="min-h-[100px]"
+                className="min-h-[80px]"
                 value={customerInfo.notes}
                 onChange={(e) => handleInputChange("notes", e.target.value)}
               />
@@ -476,21 +587,21 @@ const CheckoutPage = () => {
 
           {/* Resumo do Pedido */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-card rounded-2xl border shadow-card p-6 space-y-4">
+            <div className="sticky top-24 bg-card rounded-2xl border shadow-card p-4 sm:p-6 space-y-4">
               <h2 className="font-bold text-lg">Resumo do Pedido</h2>
 
               {/* Items */}
               <div className="space-y-3 max-h-[200px] overflow-y-auto">
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
-                    <div>
-                      <span className="mr-2">{item.flavor.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="mr-1">{item.flavor.icon}</span>
                       <span>{item.quantity}x {item.flavor.name}</span>
-                      <p className="text-xs text-muted-foreground ml-6">
+                      <p className="text-xs text-muted-foreground ml-5 truncate">
                         {item.size.name}
                       </p>
                     </div>
-                    <span className="font-medium">
+                    <span className="font-medium shrink-0 ml-2">
                       R$ {(item.totalPrice * item.quantity).toFixed(2).replace(".", ",")}
                     </span>
                   </div>
@@ -553,7 +664,7 @@ const CheckoutPage = () => {
                   ) : (
                     <>
                       <CreditCard className="h-4 w-4 mr-2" />
-                      Pagar com {paymentMethod === "credit" ? "Crédito" : "Débito"}
+                      Confirmar Pedido ({paymentMethod === "credit" ? "Crédito" : "Débito"})
                     </>
                   )}
                 </Button>
@@ -581,9 +692,11 @@ const CheckoutPage = () => {
                 </Button>
               )}
 
-              <p className="text-xs text-center text-muted-foreground">
-                Ao confirmar, você concorda com nossos termos de serviço
-              </p>
+              {/* Segurança */}
+              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <Shield className="h-3 w-3" />
+                <span>Pagamento seguro e criptografado</span>
+              </div>
             </div>
           </div>
         </div>

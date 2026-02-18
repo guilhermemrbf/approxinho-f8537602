@@ -214,6 +214,7 @@ const AdminOrdersPage = () => {
                 key={order.id}
                 order={{
                   id: order.id,
+                  orderNumber: order.order_number,
                   customer: order.customer_name,
                   phone: order.customer_phone,
                   address: order.delivery_address + (order.address_complement ? ` - ${order.address_complement}` : ""),
@@ -221,9 +222,10 @@ const AdminOrdersPage = () => {
                     `${item.name} ${item.size}${item.details ? ` + ${item.details}` : ""}`
                   ),
                   total: order.total,
-                  status: order.status as "pending" | "preparing" | "ready" | "delivering" | "delivered",
+                  status: order.status as "pending" | "preparing" | "ready" | "delivering" | "delivered" | "cancelled",
                   createdAt: new Date(order.created_at),
                   paymentMethod: order.payment_method === "pix" ? "PIX" : order.payment_method === "card" ? "Cartão" : "Dinheiro",
+                  notes: order.notes || undefined,
                 }}
                 index={index}
                 onUpdateStatus={handleUpdateStatus}
