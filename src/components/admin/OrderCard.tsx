@@ -1,9 +1,21 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Package, CheckCircle, Truck, Phone, MapPin, CreditCard, Banknote, QrCode, ArrowRight } from "lucide-react";
+import { Clock, Package, CheckCircle, Truck, Phone, MapPin, CreditCard, Banknote, QrCode, ArrowRight, XCircle, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered";
+type OrderStatus = "pending" | "preparing" | "ready" | "delivering" | "delivered" | "cancelled";
 
 interface Order {
   id: string;
@@ -15,6 +27,8 @@ interface Order {
   status: OrderStatus;
   createdAt: Date;
   paymentMethod: string;
+  notes?: string;
+  orderNumber?: number;
 }
 
 interface OrderCardProps {
@@ -23,51 +37,50 @@ interface OrderCardProps {
   onUpdateStatus: (orderId: string, newStatus: OrderStatus) => void;
 }
 
-const statusConfig = {
+const statusConfig: Record<OrderStatus, {
+  label: string;
+  emoji: string;
+  gradient: string;
+  bgLight: string;
+  icon: typeof Clock;
+  nextLabel: string | null;
+  nextIcon: typeof Clock | null;
+}> = {
   pending: { 
-    label: "Novo Pedido", 
-    emoji: "🔴",
+    label: "Novo Pedido", emoji: "🔴",
     gradient: "from-yellow-500 to-orange-500",
     bgLight: "bg-yellow-50",
-    icon: Clock,
-    nextLabel: "Iniciar Preparo",
-    nextIcon: Package,
+    icon: Clock, nextLabel: "Iniciar Preparo", nextIcon: Package,
   },
   preparing: { 
-    label: "Preparando", 
-    emoji: "🟡",
+    label: "Preparando", emoji: "🟡",
     gradient: "from-blue-500 to-cyan-500",
     bgLight: "bg-blue-50",
-    icon: Package,
-    nextLabel: "Marcar Pronto",
-    nextIcon: CheckCircle,
+    icon: Package, nextLabel: "Marcar Pronto", nextIcon: CheckCircle,
   },
   ready: { 
-    label: "Pronto", 
-    emoji: "🟢",
+    label: "Pronto", emoji: "🟢",
     gradient: "from-green-500 to-emerald-500",
     bgLight: "bg-green-50",
-    icon: CheckCircle,
-    nextLabel: "Saiu p/ Entrega",
-    nextIcon: Truck,
+    icon: CheckCircle, nextLabel: "Saiu p/ Entrega", nextIcon: Truck,
   },
   delivering: { 
-    label: "Em Rota", 
-    emoji: "🚀",
+    label: "Em Rota", emoji: "🚀",
     gradient: "from-purple-500 to-pink-500",
     bgLight: "bg-purple-50",
-    icon: Truck,
-    nextLabel: "Confirmar Entrega",
-    nextIcon: CheckCircle,
+    icon: Truck, nextLabel: "Confirmar Entrega", nextIcon: CheckCircle,
   },
   delivered: { 
-    label: "Entregue", 
-    emoji: "✅",
+    label: "Entregue", emoji: "✅",
     gradient: "from-gray-400 to-gray-500",
     bgLight: "bg-gray-50",
-    icon: CheckCircle,
-    nextLabel: null,
-    nextIcon: null,
+    icon: CheckCircle, nextLabel: null, nextIcon: null,
+  },
+  cancelled: { 
+    label: "Cancelado", emoji: "❌",
+    gradient: "from-red-400 to-red-600",
+    bgLight: "bg-red-50",
+    icon: XCircle, nextLabel: null, nextIcon: null,
   },
 };
 
@@ -78,14 +91,14 @@ const paymentIcons: Record<string, typeof CreditCard> = {
 };
 
 export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
-  const config = statusConfig[order.status];
+  const config = statusConfig[order.status] || statusConfig.pending;
   const StatusIcon = config.icon;
   const PaymentIcon = paymentIcons[order.paymentMethod] || CreditCard;
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
     const flow: OrderStatus[] = ["pending", "preparing", "ready", "delivering", "delivered"];
     const currentIndex = flow.indexOf(currentStatus);
-    return currentIndex < flow.length - 1 ? flow[currentIndex + 1] : null;
+    return currentIndex >= 0 && currentIndex < flow.length - 1 ? flow[currentIndex + 1] : null;
   };
 
   const nextStatus = getNextStatus(order.status);
@@ -99,6 +112,12 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
   };
 
   const isUrgent = order.status === "pending";
+  const isCancelled = order.status === "cancelled";
+  const isFinished = order.status === "delivered" || isCancelled;
+
+  const whatsappLink = `https://wa.me/55${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
+    `Olá ${order.customer}! Sobre seu pedido ${order.orderNumber ? `#${order.orderNumber}` : ""} na QUERO AÇAI.`
+  )}`;
 
   return (
     <motion.div
@@ -106,7 +125,8 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.03 }}
       className={`bg-card rounded-2xl border-2 shadow-lg overflow-hidden transition-all hover:shadow-xl ${
-        isUrgent ? "border-yellow-400 ring-2 ring-yellow-200 shadow-yellow-100" : "border-border"
+        isUrgent ? "border-yellow-400 ring-2 ring-yellow-200 shadow-yellow-100" : 
+        isCancelled ? "border-red-300 opacity-70" : "border-border"
       }`}
     >
       {/* Status Header */}
@@ -116,14 +136,14 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
           <span className="font-bold text-sm">{config.emoji} {config.label}</span>
         </div>
         <Badge variant="secondary" className="bg-white/20 text-white border-0 font-mono text-xs">
-          #{order.id.slice(0, 6)}
+          #{order.orderNumber || order.id.slice(0, 6)}
         </Badge>
       </div>
 
       <div className="p-4">
         {/* Tempo e Valor */}
-        <div className="flex items-center justify-between mb-4">
-          <Badge variant="outline" className={`${isUrgent ? "border-yellow-400 text-yellow-600 bg-yellow-50" : "border-muted"}`}>
+        <div className="flex items-center justify-between mb-3">
+          <Badge variant="outline" className={`text-xs ${isUrgent ? "border-yellow-400 text-yellow-600 bg-yellow-50" : "border-muted"}`}>
             ⏱️ {formatTime(order.createdAt)}
           </Badge>
           <span className="text-xl font-bold text-primary">
@@ -132,72 +152,124 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
         </div>
 
         {/* Cliente */}
-        <div className="space-y-2 mb-4">
-          <p className="font-bold text-foreground text-lg leading-tight">{order.customer}</p>
-          <a 
-            href={`tel:${order.phone}`}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
-          >
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+        <div className="space-y-1.5 mb-3">
+          <p className="font-bold text-foreground text-base leading-tight">{order.customer}</p>
+          <div className="flex items-center gap-2">
+            <a 
+              href={`tel:${order.phone}`}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
               <Phone className="h-3 w-3 text-primary" />
-            </div>
-            {order.phone}
-          </a>
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="h-3 w-3 text-primary" />
-            </div>
+              {order.phone}
+            </a>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 transition-colors"
+            >
+              <MessageCircle className="h-3 w-3" />
+              WhatsApp
+            </a>
+          </div>
+          <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3 text-primary shrink-0 mt-0.5" />
             <span className="line-clamp-2">{order.address}</span>
           </p>
         </div>
 
         {/* Itens */}
-        <div className={`${config.bgLight} rounded-xl p-3 mb-4 border border-border/50`}>
-          <p className="text-xs font-bold text-muted-foreground mb-2 uppercase tracking-wider flex items-center gap-1.5">
-            📦 Itens do Pedido
-          </p>
-          <ul className="space-y-1.5">
-            {order.items.slice(0, 3).map((item, i) => (
-              <li key={i} className="text-sm text-foreground flex items-start gap-2">
+        <div className={`${config.bgLight} rounded-xl p-3 mb-3 border border-border/50`}>
+          <p className="text-xs font-bold text-muted-foreground mb-1.5 uppercase tracking-wider">📦 Itens</p>
+          <ul className="space-y-1">
+            {order.items.slice(0, 4).map((item, i) => (
+              <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
                 <span className="text-primary font-bold">•</span>
                 <span className="line-clamp-1">{item}</span>
               </li>
             ))}
-            {order.items.length > 3 && (
+            {order.items.length > 4 && (
               <li className="text-xs text-muted-foreground italic">
-                +{order.items.length - 3} item(s)
+                +{order.items.length - 4} item(s)
               </li>
             )}
           </ul>
         </div>
 
+        {/* Observações */}
+        {order.notes && (
+          <div className="mb-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="text-xs text-amber-800">📝 {order.notes}</p>
+          </div>
+        )}
+
         {/* Pagamento */}
-        <div className="flex items-center justify-between mb-4 p-3 bg-muted/50 rounded-xl">
-          <span className="text-sm text-muted-foreground font-medium">Pagamento:</span>
-          <Badge variant="outline" className="flex items-center gap-1.5 font-semibold">
-            <PaymentIcon className="h-3.5 w-3.5" />
+        <div className="flex items-center justify-between mb-3 p-2 bg-muted/50 rounded-xl">
+          <span className="text-xs text-muted-foreground font-medium">Pagamento:</span>
+          <Badge variant="outline" className="flex items-center gap-1 text-xs font-semibold">
+            <PaymentIcon className="h-3 w-3" />
             {order.paymentMethod}
           </Badge>
         </div>
 
-        {/* Ação Principal */}
-        {nextStatus && config.nextLabel && (
-          <Button
-            variant="default"
-            size="lg"
-            className={`w-full font-bold text-base gap-2 bg-gradient-to-r ${config.gradient} hover:opacity-90 text-white shadow-md`}
-            onClick={() => onUpdateStatus(order.id, nextStatus)}
-          >
-            {config.nextIcon && <config.nextIcon className="h-5 w-5" />}
-            {config.nextLabel}
-            <ArrowRight className="h-4 w-4 ml-auto" />
-          </Button>
+        {/* Ações */}
+        {!isFinished && (
+          <div className="space-y-2">
+            {/* Avançar Status */}
+            {nextStatus && config.nextLabel && (
+              <Button
+                variant="default"
+                size="sm"
+                className={`w-full font-bold gap-2 bg-gradient-to-r ${config.gradient} hover:opacity-90 text-white shadow-md`}
+                onClick={() => onUpdateStatus(order.id, nextStatus)}
+              >
+                {config.nextIcon && <config.nextIcon className="h-4 w-4" />}
+                {config.nextLabel}
+                <ArrowRight className="h-3 w-3 ml-auto" />
+              </Button>
+            )}
+
+            {/* Cancelar */}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full text-xs text-red-500 hover:text-red-700 hover:bg-red-50">
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Cancelar Pedido
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancelar pedido?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. O pedido de {order.customer} será cancelado.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Voltar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onUpdateStatus(order.id, "cancelled")}
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    Sim, cancelar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         )}
 
         {order.status === "delivered" && (
-          <div className="text-center py-3">
-            <Badge variant="secondary" className="text-sm px-4 py-2 bg-green-100 text-green-700 border-green-200">
+          <div className="text-center py-2">
+            <Badge variant="secondary" className="text-xs px-3 py-1.5 bg-green-100 text-green-700 border-green-200">
               ✅ Pedido Finalizado
+            </Badge>
+          </div>
+        )}
+
+        {isCancelled && (
+          <div className="text-center py-2">
+            <Badge variant="secondary" className="text-xs px-3 py-1.5 bg-red-100 text-red-700 border-red-200">
+              ❌ Pedido Cancelado
             </Badge>
           </div>
         )}
