@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Phone, MapPin, Clock, Instagram, Facebook } from "lucide-react";
 import logoAcaiBH from "@/assets/acai-bh-logo.png.asset.json";
 import { businessInfo } from "@/data/menu";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 export function Footer() {
   return (
@@ -95,6 +96,9 @@ export function Footer() {
             <div className="mt-4 p-3 rounded-lg bg-primary/10">
               <p className="text-xs font-medium text-primary">Taxa de Entrega</p>
               <p className="text-lg font-bold">R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}</p>
+            </div>
+            <div className="mt-4">
+              <InstallAppButton className="w-full" />
             </div>
           </div>
         </div>
