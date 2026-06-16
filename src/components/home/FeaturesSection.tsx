@@ -30,7 +30,7 @@ export function FeaturesSection() {
         once: true
       }} className="text-center mb-12">
           <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Por que escolher a <span className="text-primary font-extrabold">QUERO AÇAI</span>?
+            Por que escolher o <span className="text-primary font-extrabold">Açaí BH</span>?
           </h2>
         </motion.div>
 

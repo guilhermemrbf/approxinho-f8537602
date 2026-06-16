@@ -121,7 +121,7 @@ const AdminOrdersPage = () => {
                   )}
                 </h1>
                 <p className="text-sm text-white/80">
-                  QUERO AÇAI
+                  Açaí BH
                   <span className="ml-2 inline-flex items-center gap-1 text-xs text-green-300">
                     <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
                     Sincronizado em tempo real

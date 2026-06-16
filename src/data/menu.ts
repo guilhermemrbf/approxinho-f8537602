@@ -1,4 +1,4 @@
-// Dados do cardápio QUERO AÇAI
+// Dados do cardápio Açaí BH
 
 export interface Size {
   id: string;
@@ -126,7 +126,7 @@ export const extras: Extra[] = [
 ];
 
 export const businessInfo = {
-  name: "QUERO AÇAI",
+  name: "Açaí BH",
   address: "Praça Marinho de Carvalho, Uibaí-BA",
   phone: "(74) 98149-5762",
   whatsapp: "5574981495762",
