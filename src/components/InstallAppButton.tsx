@@ -20,14 +20,6 @@ declare global {
   }
 }
 
-function isIOSSafari() {
-  if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isSafari = /AppleWebKit/.test(ua) && !/CriOS/.test(ua) && !/GSAiOS/.test(ua);
-  return isIOS && isSafari;
-}
-
 function isStandalone() {
   if (typeof window === "undefined") return false;
   return (
