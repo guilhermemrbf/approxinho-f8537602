@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Download, Share } from "lucide-react";
+import { Download, Share, MoreVertical, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -19,14 +18,6 @@ declare global {
   interface Window {
     __deferredInstallPrompt: DeferredPromptEvent | null;
   }
-}
-
-function isIOSSafari() {
-  if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isSafari = /AppleWebKit/.test(ua) && !/CriOS/.test(ua) && !/GSAiOS/.test(ua);
-  return isIOS && isSafari;
 }
 
 function isStandalone() {
@@ -42,16 +33,18 @@ interface InstallAppButtonProps {
   variant?: "default" | "outline" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   className?: string;
+  onAfterClick?: () => void;
 }
 
 export function InstallAppButton({
   variant = "outline",
   size = "sm",
   className,
+  onAfterClick,
 }: InstallAppButtonProps) {
   const [canPrompt, setCanPrompt] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const [iosOpen, setIosOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     setInstalled(isStandalone());
@@ -72,23 +65,19 @@ export function InstallAppButton({
 
   if (installed) return null;
 
-  const ios = isIOSSafari();
-
   const handleClick = async () => {
-    if (ios) {
-      setIosOpen(true);
+    const prompt = window.__deferredInstallPrompt;
+    if (prompt) {
+      await prompt.prompt();
+      await prompt.userChoice;
+      window.__deferredInstallPrompt = null;
+      setCanPrompt(false);
+      onAfterClick?.();
       return;
     }
-    const prompt = window.__deferredInstallPrompt;
-    if (!prompt) return;
-    await prompt.prompt();
-    await prompt.userChoice;
-    window.__deferredInstallPrompt = null;
-    setCanPrompt(false);
+    // No native prompt available — show manual install instructions.
+    setHelpOpen(true);
   };
-
-  // On non-iOS, hide if the browser hasn't fired beforeinstallprompt yet
-  if (!ios && !canPrompt) return null;
 
   return (
     <>
@@ -102,16 +91,47 @@ export function InstallAppButton({
         Instalar app
       </Button>
 
-      <Dialog open={iosOpen} onOpenChange={setIosOpen}>
-        <DialogContent>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Instalar Açaí BH no iPhone</DialogTitle>
+            <DialogTitle>Instalar o Açaí BH</DialogTitle>
             <DialogDescription>
-              No Safari, toque no botão <strong>Compartilhar</strong>{" "}
-              <Share className="inline h-4 w-4" /> e em seguida em{" "}
-              <strong>Adicionar à Tela de Início</strong>.
+              Siga as instruções de acordo com o seu aparelho.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-5 text-sm">
+            <div>
+              <h4 className="font-semibold mb-2">📱 iPhone / iPad (Safari)</h4>
+              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                <li>
+                  Toque no botão <strong>Compartilhar</strong>{" "}
+                  <Share className="inline h-4 w-4 align-text-bottom" /> na barra
+                  inferior do Safari.
+                </li>
+                <li>
+                  Escolha <strong>Adicionar à Tela de Início</strong>{" "}
+                  <Plus className="inline h-4 w-4 align-text-bottom" />.
+                </li>
+                <li>Toque em <strong>Adicionar</strong> no canto superior direito.</li>
+              </ol>
+            </div>
+
+            <div>
+              <h4 className="font-semibold mb-2">🤖 Android (Chrome)</h4>
+              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                <li>
+                  Toque no menu <MoreVertical className="inline h-4 w-4 align-text-bottom" />{" "}
+                  no canto superior direito.
+                </li>
+                <li>
+                  Escolha <strong>Instalar app</strong> ou{" "}
+                  <strong>Adicionar à tela inicial</strong>.
+                </li>
+                <li>Confirme em <strong>Instalar</strong>.</li>
+              </ol>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </>

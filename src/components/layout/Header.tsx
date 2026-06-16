@@ -6,6 +6,7 @@ import logoAcaiBH from "@/assets/acai-bh-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 const navLinks = [
   { path: "/", label: "Início" },
@@ -150,6 +151,12 @@ export function Header() {
                   </Button>
                 </Link>
               ))}
+              <InstallAppButton
+                variant="ghost"
+                size="default"
+                className="w-full justify-start gap-2"
+                onAfterClick={() => setIsMenuOpen(false)}
+              />
               <hr className="my-2" />
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start gap-2">
