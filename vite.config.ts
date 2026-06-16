@@ -24,9 +24,9 @@ export default defineConfig(({ mode }) => ({
       },
       includeAssets: ["favicon.ico", "assets/icons/icon-192.png", "assets/icons/icon-512.png"],
       manifest: {
-        name: "QUERO AÇAI - Delivery",
-        short_name: "QUERO AÇAI",
-        description: "Monte seu açaí do seu jeito! Delivery - QUERO AÇAI.",
+        name: "Açaí BH - Delivery",
+        short_name: "Açaí BH",
+        description: "Monte seu açaí do seu jeito! Delivery - Açaí BH.",
         theme_color: "#710f85",
         background_color: "#f0f4f8",
         display: "standalone",

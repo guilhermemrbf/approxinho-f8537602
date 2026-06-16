@@ -178,7 +178,7 @@ const CheckoutPage = () => {
    * const mp = new MercadoPagoClient();
    * const payment = await mp.createPixPayment({
    *   amount: grandTotal,
-   *   description: `Pedido QUERO AÇAI - ${items.length} item(s)`,
+   *   description: `Pedido Açaí BH - ${items.length} item(s)`,
    *   payer: { email: "cliente@email.com", firstName: customerInfo.name }
    * });
    * setPixCode(payment.point_of_interaction.transaction_data.qr_code);
@@ -194,7 +194,7 @@ const CheckoutPage = () => {
     // MOCK: Simula geração do PIX - substituir pela integração real
     await new Promise((resolve) => setTimeout(resolve, 1500));
     
-    const mockCode = "00020126580014br.gov.bcb.pix0136queroacai-pix-key-placeholder5204000053039865802BR5925QUERO ACAI DELIVERY6008CIDADE62070503***6304ABCD";
+    const mockCode = "00020126580014br.gov.bcb.pix0136acaibh-pix-key-placeholder5204000053039865802BR5925ACAI BH DELIVERY6008CIDADE62070503***6304ABCD";
     setPixCode(mockCode);
     setPixQrBase64(""); // Será preenchido pela API real
     setPaymentId(null); // Será preenchido pela API real

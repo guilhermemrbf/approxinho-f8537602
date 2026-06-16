@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User } from "lucide-react";
-import logoOhana from "@/assets/logo-ohana.jpeg";
+import logoAcaiBH from "@/assets/acai-bh-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
@@ -51,11 +51,15 @@ export function Header() {
         <div className="container flex h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={logoOhana} alt="QUERO AÇAI" className="h-11 w-11 rounded-full object-cover shadow-lg ring-2 ring-primary/30" />
+            <img
+              src={logoAcaiBH.url}
+              alt="Açaí BH"
+              className="h-11 w-11 object-contain"
+            />
             <div>
               <h1 className="text-lg font-extrabold leading-none">
-                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>QUERO</span>{" "}
-                <span className="text-foreground">AÇAI</span>
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>Açaí</span>{" "}
+                <span className="text-foreground">BH</span>
               </h1>
               <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Delivery</p>
             </div>
