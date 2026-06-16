@@ -178,7 +178,7 @@ const CheckoutPage = () => {
    * const mp = new MercadoPagoClient();
    * const payment = await mp.createPixPayment({
    *   amount: grandTotal,
-   *   description: `Pedido Açaí BH - ${items.length} item(s)`,
+   *   description: `Pedido Roxinho - ${items.length} item(s)`,
    *   payer: { email: "cliente@email.com", firstName: customerInfo.name }
    * });
    * setPixCode(payment.point_of_interaction.transaction_data.qr_code);

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Phone, MapPin, Clock, Instagram, Facebook } from "lucide-react";
-import logoAcaiBH from "@/assets/acai-bh-logo.png.asset.json";
+import logoRoxinho from "@/assets/roxinho-icon.png.asset.json";
 import { businessInfo } from "@/data/menu";
 
 export function Footer() {
@@ -11,9 +11,9 @@ export function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <img src={logoAcaiBH.url} alt="Açaí BH" className="h-10 w-10 object-contain" />
+              <img src={logoRoxinho.url} alt="Roxinho" className="h-10 w-10 object-contain" />
               <div>
-                <h3 className="text-lg font-bold">Açaí BH</h3>
+                <h3 className="text-lg font-bold">Roxinho</h3>
                 <p className="text-xs text-muted-foreground">Delivery</p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export function Footer() {
         <hr className="my-8 border-border" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© 2025 Açaí BH. Todos os direitos reservados.</p>
+          <p>© 2025 Roxinho. Todos os direitos reservados.</p>
           <div className="flex gap-4">
             <Link to="/termos" className="hover:text-primary transition-colors">
               Termos de Uso
