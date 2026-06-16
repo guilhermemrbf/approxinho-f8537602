@@ -59,10 +59,9 @@ export function Header() {
             />
             <div>
               <h1 className="text-lg font-extrabold leading-none">
-                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>Açaí</span>{" "}
-                <span className="text-foreground">BH</span>
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'var(--gradient-açai)' }}>Roxinho</span>
               </h1>
-              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Delivery</p>
+              <p className="text-[10px] text-muted-foreground tracking-widest uppercase">Açaíteria</p>
             </div>
           </Link>
 
