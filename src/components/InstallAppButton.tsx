@@ -94,7 +94,7 @@ export function InstallAppButton({
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Instalar o Açaí BH</DialogTitle>
+            <DialogTitle>Instalar o Roxinho</DialogTitle>
             <DialogDescription>
               Siga as instruções de acordo com o seu aparelho.
             </DialogDescription>

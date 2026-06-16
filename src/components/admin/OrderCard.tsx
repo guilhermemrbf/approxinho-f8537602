@@ -116,7 +116,7 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
   const isFinished = order.status === "delivered" || isCancelled;
 
   const whatsappLink = `https://wa.me/55${order.phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-    `Olá ${order.customer}! Sobre seu pedido ${order.orderNumber ? `#${order.orderNumber}` : ""} no Açaí BH.`
+    `Olá ${order.customer}! Sobre seu pedido ${order.orderNumber ? `#${order.orderNumber}` : ""} no Roxinho.`
   )}`;
 
   return (

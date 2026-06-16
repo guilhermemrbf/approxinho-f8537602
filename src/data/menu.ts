@@ -1,4 +1,4 @@
-// Dados do cardápio Açaí BH
+// Dados do cardápio Roxinho
 
 export interface Size {
   id: string;
@@ -126,7 +126,7 @@ export const extras: Extra[] = [
 ];
 
 export const businessInfo = {
-  name: "Açaí BH",
+  name: "Roxinho",
   address: "Praça Marinho de Carvalho, Uibaí-BA",
   phone: "(74) 98149-5762",
   whatsapp: "5574981495762",

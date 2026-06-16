@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Menu, X, Phone, Clock, MapPin, User } from "lucide-react";
-import logoAcaiBH from "@/assets/acai-bh-logo.png.asset.json";
+import logoRoxinho from "@/assets/roxinho-icon.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { businessInfo } from "@/data/menu";
@@ -53,8 +53,8 @@ export function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <img
-              src={logoAcaiBH.url}
-              alt="Açaí BH"
+              src={logoRoxinho.url}
+              alt="Roxinho"
               className="h-11 w-11 object-contain"
             />
             <div>
