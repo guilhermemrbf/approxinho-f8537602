@@ -20,7 +20,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-safe"
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 safe-area-bottom"
       aria-label="Navegação principal"
     >
       <ul className="grid grid-cols-5">
