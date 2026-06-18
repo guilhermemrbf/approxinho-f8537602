@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { businessInfo } from "@/data/menu";
 
 export function CTASection() {
   return (
@@ -34,15 +35,17 @@ export function CTASection() {
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
-              <a
-                href="https://wa.me/5574981448065"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="outline" size="xl" className="border-white text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
-                  Falar no WhatsApp
-                </Button>
-              </a>
+              {businessInfo.whatsapp && (
+                <a
+                  href={`https://wa.me/${businessInfo.whatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="xl" className="border-white text-primary-foreground hover:bg-white/10 hover:text-primary-foreground">
+                    Falar no WhatsApp
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         </motion.div>
