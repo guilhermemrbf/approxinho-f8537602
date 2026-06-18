@@ -176,7 +176,7 @@ const BuilderPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32 md:pb-36">
+    <div className="min-h-screen bg-background pb-[calc(7rem+env(safe-area-inset-bottom,0px))] md:pb-36">
       {/* Sticky progress bar */}
       <div className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b shadow-sm" ref={contentRef}>
         <div className="container py-3 md:py-4">
@@ -248,7 +248,7 @@ const BuilderPage = () => {
       </div>
 
       {/* Content */}
-      <div className="container py-4 md:py-8 px-3 md:px-4">
+      <div className="container px-3 py-4 pb-28 md:px-4 md:py-8 md:pb-8">
         <AnimatePresence mode="wait">
           {/* SIZE STEP */}
           {currentStep === "size" && (
@@ -704,8 +704,8 @@ const BuilderPage = () => {
       </div>
 
       {/* Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-2xl safe-area-bottom z-40">
-        <div className="container py-2.5 md:py-4 px-3 md:px-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t shadow-2xl safe-area-bottom z-50">
+        <div className="container px-3 py-3 md:px-4 md:py-4">
           <div className="flex items-center gap-2 md:gap-3">
             <Button
               variant="outline"
