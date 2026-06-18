@@ -127,10 +127,10 @@ export const extras: Extra[] = [
 
 export const businessInfo = {
   name: "Roxinho",
-  address: "Praça Marinho de Carvalho, Uibaí-BA",
-  phone: "(74) 98149-5762",
-  whatsapp: "5574981495762",
-  hours: "Aberto todos os dias, 15h às 23h",
-  deliveryFee: 5.0,
-  instagram: "@queroacai._",
+  address: "",
+  phone: "",
+  whatsapp: "",
+  hours: "",
+  deliveryFee: 0,
+  instagram: "",
 };
