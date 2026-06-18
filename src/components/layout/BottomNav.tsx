@@ -15,6 +15,10 @@ export function BottomNav() {
   const location = useLocation();
   const { totalItems } = useCart();
 
+  if (location.pathname.startsWith("/montar")) {
+    return null;
+  }
+
   const isActive = (path: string) =>
     path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
