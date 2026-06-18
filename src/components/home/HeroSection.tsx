@@ -4,11 +4,11 @@ import { ArrowRight, Sparkles, Clock, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-acai.jpg";
 export function HeroSection() {
-  return <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+  return <section className="relative min-h-[70vh] md:min-h-[90vh] flex items-center overflow-hidden py-12 md:py-0">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img src={heroImage} alt="Açaí delicioso com toppings" className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/95 via-secondary/80 to-transparent border-primary" />
+        <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-secondary/95 via-secondary/85 to-secondary/40 md:to-transparent" />
       </div>
 
       {/* Content */}
@@ -38,7 +38,7 @@ export function HeroSection() {
         }} transition={{
           duration: 0.6,
           delay: 0.1
-        }} className="mt-6 text-4xl font-extrabold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl">
+          }} className="mt-5 text-3xl font-extrabold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl">
             O melhor <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">Açaí</span> da região,
             <br />
             <span className="text-primary-foreground/90">personalizado pra você</span>
@@ -53,7 +53,7 @@ export function HeroSection() {
         }} transition={{
           duration: 0.6,
           delay: 0.2
-        }} className="mt-6 text-lg text-primary-foreground/80 max-w-xl">
+        }} className="mt-4 text-base md:text-lg text-primary-foreground/80 max-w-xl">
             Escolha o tamanho, sabor, complementos ilimitados, coberturas e frutas.
             Montamos exatamente como você imaginou! 🍇
           </motion.p>
@@ -67,15 +67,15 @@ export function HeroSection() {
         }} transition={{
           duration: 0.6,
           delay: 0.3
-        }} className="mt-8 flex flex-wrap gap-4">
-            <Link to="/montar">
-              <Button variant="hero" size="xl" className="group">
+        }} className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Link to="/montar" className="w-full sm:w-auto">
+              <Button variant="hero" size="xl" className="group w-full sm:w-auto">
                 Monte seu Açaí
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Link to="/cardapio">
-              <Button variant="glass" size="xl" className="text-primary-foreground border-primary-foreground/30">
+            <Link to="/cardapio" className="w-full sm:w-auto">
+              <Button variant="glass" size="xl" className="w-full sm:w-auto text-primary-foreground border-primary-foreground/30">
                 Ver Cardápio
               </Button>
             </Link>
@@ -88,7 +88,7 @@ export function HeroSection() {
         }} transition={{
           duration: 0.6,
           delay: 0.5
-        }} className="mt-12 flex flex-wrap gap-6">
+        }} className="mt-8 md:mt-12 flex flex-wrap gap-4 md:gap-6">
             <div className="flex items-center gap-2 text-primary-foreground/80">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
                 <Clock className="h-5 w-5" />

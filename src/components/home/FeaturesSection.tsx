@@ -18,7 +18,7 @@ const features = [{
   description: "3 complementos, 1 cobertura e 1 fruta já no preço base"
 }];
 export function FeaturesSection() {
-  return <section className="py-20 bg-accent/50">
+  return <section className="py-12 md:py-20 bg-accent/50">
       <div className="container">
         <motion.div initial={{
         opacity: 0,
@@ -28,13 +28,13 @@ export function FeaturesSection() {
         y: 0
       }} viewport={{
         once: true
-      }} className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+      }} className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground sm:text-4xl">
             Por que escolher o <span className="text-primary font-extrabold">Roxinho</span>?
           </h2>
         </motion.div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           {features.map((feature, index) => <motion.div key={feature.title} initial={{
           opacity: 0,
           y: 20

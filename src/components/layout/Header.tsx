@@ -48,8 +48,8 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="glass border-b">
-        <div className="container flex h-16 items-center justify-between">
+      <div className="glass border-b safe-area-top">
+        <div className="container flex h-14 md:h-16 items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <img
