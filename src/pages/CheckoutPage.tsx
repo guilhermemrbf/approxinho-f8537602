@@ -328,7 +328,6 @@ const CheckoutPage = () => {
                 value={paymentMethod}
                 onValueChange={(value) => {
                   setPaymentMethod(value as PaymentMethod);
-                  setPixGenerated(false);
                 }}
                 className="grid gap-3"
               >
@@ -347,11 +346,8 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">PIX</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Aprovação instantânea</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-1 rounded-full shrink-0">
-                    Recomendado
-                  </span>
                 </label>
 
                 {/* Cartão de Crédito */}
@@ -369,7 +365,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Cartão de Crédito</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
                 </label>
 
@@ -388,7 +384,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Cartão de Débito</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
                 </label>
 
@@ -433,68 +429,6 @@ const CheckoutPage = () => {
                 </motion.div>
               )}
 
-              {/* PIX QR Code */}
-              {paymentMethod === "pix" && pixGenerated && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-6 pt-6 border-t text-center"
-                >
-                  {/* QR Code - será substituído pelo QR real */}
-                  <div className="bg-white p-4 rounded-xl inline-block mb-4 shadow-sm">
-                    {pixQrBase64 ? (
-                      <img src={`data:image/png;base64,${pixQrBase64}`} alt="QR Code PIX" className="h-48 w-48" />
-                    ) : (
-                      <div className="h-48 w-48 bg-gradient-to-br from-muted to-muted-foreground/20 rounded-lg flex flex-col items-center justify-center gap-2">
-                        <QrCode className="h-20 w-20 text-foreground/30" />
-                        <p className="text-xs text-muted-foreground">QR Code Simulado</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Copie o código abaixo e pague no app do seu banco
-                  </p>
-                  
-                  <div className="flex gap-2">
-                    <Input
-                      value={pixCode}
-                      readOnly
-                      className="text-xs font-mono"
-                    />
-                    <Button variant="outline" size="icon" onClick={copyPixCode} className="shrink-0">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Timer indicativo */}
-                  <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>O código PIX expira em 30 minutos</span>
-                  </div>
-                  
-                  <Button
-                    variant="hero"
-                    className="w-full mt-4"
-                    onClick={confirmPixPayment}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Check className="h-4 w-4 mr-2" />
-                    )}
-                    Já paguei - Confirmar Pedido
-                  </Button>
-                  
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {paymentId 
-                      ? "O pagamento será verificado automaticamente" 
-                      : "⚠️ Integração em desenvolvimento - pedido será criado como pendente"
-                    }
-                  </p>
-                </motion.div>
-              )}
             </motion.div>
 
             {/* Observações */}
@@ -557,23 +491,32 @@ const CheckoutPage = () => {
               </div>
 
               {/* Botão de ação baseado no método de pagamento */}
-              {paymentMethod === "pix" && !pixGenerated && (
+              {paymentMethod === "pix" && (
                 <Button
                   variant="hero"
                   size="lg"
                   className="w-full"
-                  onClick={handleGeneratePix}
+                  onClick={async () => {
+                    if (!validateForm()) return;
+                    setIsProcessing(true);
+                    const order = await submitOrder();
+                    if (order) {
+                      clearCart();
+                      navigate("/pedidos");
+                    }
+                    setIsProcessing(false);
+                  }}
                   disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Gerando PIX...
+                      Enviando pedido...
                     </>
                   ) : (
                     <>
                       <QrCode className="h-4 w-4 mr-2" />
-                      Gerar QR Code PIX
+                      Confirmar Pedido (PIX na entrega)
                     </>
                   )}
                 </Button>
