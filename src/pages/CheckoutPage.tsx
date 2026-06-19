@@ -311,6 +311,47 @@ const CheckoutPage = () => {
                   />
                 </div>
               </div>
+
+              {/* Zona de entrega */}
+              <div className="mt-4 pt-4 border-t">
+                <Label className="mb-2 block">Local de entrega</Label>
+                <RadioGroup
+                  value={deliveryZone}
+                  onValueChange={(v) => setDeliveryZone(v as DeliveryZone)}
+                  className="grid gap-2 sm:grid-cols-2"
+                >
+                  <label
+                    htmlFor="zone-cidade"
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      deliveryZone === "cidade"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="cidade" id="zone-cidade" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Uíbaí (cidade)</p>
+                      <p className="text-xs text-green-600 font-medium">Entrega grátis</p>
+                    </div>
+                  </label>
+                  <label
+                    htmlFor="zone-povoado"
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      deliveryZone === "povoado"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="povoado" id="zone-povoado" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Povoado</p>
+                      <p className="text-xs text-muted-foreground">
+                        Taxa R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+                  </label>
+                </RadioGroup>
+              </div>
             </motion.div>
 
             {/* Forma de Pagamento */}
