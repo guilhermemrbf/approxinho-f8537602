@@ -3,6 +3,7 @@ import { sizes, flavors, complements, toppings, businessInfo } from "@/data/menu
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { IngredientImage } from "@/components/IngredientImage";
 
 const MenuPage = () => {
   const supremos = flavors.filter((f) => f.premium);
@@ -97,14 +98,23 @@ const MenuPage = () => {
           <p className="text-xs text-muted-foreground mb-4">
             5 inclusos em todos os tamanhos • Acomp. extra: R$ 1,00
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {complements.map((c) => (
-              <span
+              <div
                 key={c.id}
-                className="px-3 py-1.5 rounded-full bg-card border text-xs md:text-sm flex items-center gap-1.5"
+                className="rounded-xl bg-card border p-2 flex flex-col items-center text-center"
               >
-                {c.icon} {c.name}
-              </span>
+                <IngredientImage
+                  src={c.image}
+                  emoji={c.icon}
+                  alt={c.name}
+                  size={56}
+                  rounded="full"
+                />
+                <span className="mt-1.5 text-[11px] md:text-xs font-medium leading-tight">
+                  {c.name}
+                </span>
+              </div>
             ))}
           </div>
         </section>
@@ -122,7 +132,13 @@ const MenuPage = () => {
                 className="rounded-xl bg-card border p-4 shadow-card flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{t.icon}</span>
+                  <IngredientImage
+                    src={t.image}
+                    emoji={t.icon}
+                    alt={t.name}
+                    size={56}
+                    rounded="full"
+                  />
                   <span className="font-medium">{t.name}</span>
                 </div>
                 <span className="font-bold text-primary">
