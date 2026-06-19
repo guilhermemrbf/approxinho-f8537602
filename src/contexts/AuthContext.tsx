@@ -21,26 +21,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkAdminRole = useCallback(async (): Promise<boolean> => {
-    if (!user) {
-      setIsAdmin(false);
-      return false;
-    }
-
+  const checkRoleForUser = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("role", "admin")
         .maybeSingle();
-
       if (error) {
         console.error("Error checking admin role:", error);
         setIsAdmin(false);
         return false;
       }
-
       const hasAdminRole = !!data;
       setIsAdmin(hasAdminRole);
       return hasAdminRole;
@@ -49,42 +42,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsAdmin(false);
       return false;
     }
-  }, [user]);
+  }, []);
+
+  const checkAdminRole = useCallback(async (): Promise<boolean> => {
+    if (!user) {
+      setIsAdmin(false);
+      return false;
+    }
+    return checkRoleForUser(user.id);
+  }, [user, checkRoleForUser]);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let lastUserId: string | null = null;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
 
-        // Defer admin role check to avoid Supabase deadlock
-        if (session?.user) {
-          setTimeout(() => {
-            checkAdminRole();
-          }, 0);
-        } else {
+        const uid = session?.user?.id ?? null;
+        if (uid && uid !== lastUserId) {
+          lastUserId = uid;
+          setTimeout(() => { checkRoleForUser(uid); }, 0);
+        } else if (!uid) {
+          lastUserId = null;
           setIsAdmin(false);
         }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-
-      if (session?.user) {
-        setTimeout(() => {
-          checkAdminRole();
-        }, 0);
+      const uid = session?.user?.id ?? null;
+      if (uid && uid !== lastUserId) {
+        lastUserId = uid;
+        setTimeout(() => { checkRoleForUser(uid); }, 0);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [checkAdminRole]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
