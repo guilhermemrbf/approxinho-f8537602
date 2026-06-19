@@ -142,6 +142,6 @@ export const businessInfo = {
   phone: "(74) 99913-0885",
   whatsapp: "5574999130885",
   hours: "",
-  deliveryFee: 0,
+  deliveryFee: 5,
   instagram: "",
 };
