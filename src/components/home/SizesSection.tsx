@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { sizes } from "@/data/menu";
+import { IngredientImage } from "@/components/IngredientImage";
 export function SizesSection() {
   return <section className="py-12 md:py-20 bg-background">
       <div className="container">
@@ -40,11 +41,14 @@ export function SizesSection() {
                   
                   {/* Size icon */}
                   <div className="relative mx-auto mb-3 md:mb-6 flex items-center justify-center">
-                    <div className={`
-                        rounded-full gradient-açai flex items-center justify-center text-2xl md:text-4xl shadow-lg
-                        ${size.ml <= 240 ? 'h-14 w-14 md:h-20 md:w-20' : size.ml <= 360 ? 'h-16 w-16 md:h-24 md:w-24' : 'h-20 w-20 md:h-28 md:w-28'}
-                      `}>
-                      🍇
+                    <div className="rounded-full gradient-açai flex items-center justify-center shadow-lg p-2">
+                      <IngredientImage
+                        src={size.image}
+                        emoji="🍇"
+                        alt={`Pote de açaí ${size.name}`}
+                        size={80}
+                        rounded="full"
+                      />
                     </div>
                   </div>
 
