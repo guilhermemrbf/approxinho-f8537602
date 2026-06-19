@@ -10,22 +10,19 @@ import {
   flavors,
   complements,
   toppings,
-  fruits,
   Size,
   Flavor,
   Complement,
   Topping,
-  Fruit,
 } from "@/data/menu";
 
-type Step = "size" | "flavor" | "complements" | "toppings" | "fruits" | "summary";
+type Step = "size" | "flavor" | "complements" | "toppings" | "summary";
 
 const steps: { key: Step; label: string; emoji: string }[] = [
   { key: "size", label: "Tamanho", emoji: "📏" },
-  { key: "flavor", label: "Sabor", emoji: "🍇" },
+  { key: "flavor", label: "Tipo", emoji: "🍇" },
   { key: "complements", label: "Acomp.", emoji: "🍫" },
-  { key: "toppings", label: "Caldas", emoji: "🍯" },
-  { key: "fruits", label: "Frutas", emoji: "🍓" },
+  { key: "toppings", label: "Premium", emoji: "✨" },
   { key: "summary", label: "Resumo", emoji: "✨" },
 ];
 
@@ -44,7 +41,7 @@ const BuilderPage = () => {
   const [selectedFlavor, setSelectedFlavor] = useState<Flavor | null>(null);
   const [selectedComplements, setSelectedComplements] = useState<Complement[]>([]);
   const [selectedToppings, setSelectedToppings] = useState<Topping[]>([]);
-  const [selectedFruits, setSelectedFruits] = useState<Fruit[]>([]);
+  const [selectedFruits] = useState<never[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
 
@@ -53,29 +50,21 @@ const BuilderPage = () => {
   const freeComplementsLeft = selectedSize
     ? selectedSize.freeComplements - Math.min(selectedComplements.length, selectedSize.freeComplements)
     : 0;
-  const freeToppingsLeft = selectedSize
-    ? selectedSize.freeToppings - Math.min(selectedToppings.length, selectedSize.freeToppings)
-    : 0;
-  const freeFruitsLeft = selectedSize
-    ? selectedSize.freeFruits - Math.min(selectedFruits.length, selectedSize.freeFruits)
-    : 0;
 
   const { totalPrice, breakdown } = useMemo(() => {
     if (!selectedSize) return { totalPrice: 0, breakdown: { base: 0, complements: 0, toppings: 0, fruits: 0 } };
 
-    const base = selectedSize.price;
+    const isSupremo = selectedFlavor?.premium ?? false;
+    const base = isSupremo ? selectedSize.supremoPrice : selectedSize.price;
     const paidComplements = selectedComplements.slice(selectedSize.freeComplements);
     const complementsPrice = paidComplements.reduce((sum, c) => sum + c.price, 0);
-    const paidToppings = selectedToppings.slice(selectedSize.freeToppings);
-    const toppingsPrice = paidToppings.reduce((sum, t) => sum + t.price, 0);
-    const paidFruits = selectedFruits.slice(selectedSize.freeFruits);
-    const fruitsPrice = paidFruits.reduce((sum, f) => sum + f.price, 0);
+    const toppingsPrice = selectedToppings.reduce((sum, t) => sum + t.price, 0);
 
     return {
-      totalPrice: base + complementsPrice + toppingsPrice + fruitsPrice,
-      breakdown: { base, complements: complementsPrice, toppings: toppingsPrice, fruits: fruitsPrice },
+      totalPrice: base + complementsPrice + toppingsPrice,
+      breakdown: { base, complements: complementsPrice, toppings: toppingsPrice, fruits: 0 },
     };
-  }, [selectedSize, selectedComplements, selectedToppings, selectedFruits]);
+  }, [selectedSize, selectedFlavor, selectedComplements, selectedToppings]);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -122,20 +111,11 @@ const BuilderPage = () => {
     );
   };
 
-  const toggleFruit = (fruit: Fruit) => {
-    setSelectedFruits((prev) =>
-      prev.find((f) => f.id === fruit.id)
-        ? prev.filter((f) => f.id !== fruit.id)
-        : [...prev, fruit]
-    );
-  };
-
   const resetBuilder = () => {
     setSelectedSize(null);
     setSelectedFlavor(null);
     setSelectedComplements([]);
     setSelectedToppings([]);
-    setSelectedFruits([]);
     setQuantity(1);
     setCurrentStep("size");
     setTimeout(scrollToTop, 50);
@@ -149,12 +129,12 @@ const BuilderPage = () => {
       flavor: selectedFlavor,
       complements: selectedComplements,
       toppings: selectedToppings,
-      fruits: selectedFruits,
+      fruits: [],
       quantity,
       totalPrice,
       freeComplementsUsed: Math.min(selectedComplements.length, selectedSize.freeComplements),
-      freeToppingsUsed: Math.min(selectedToppings.length, selectedSize.freeToppings),
-      freeFruitsUsed: Math.min(selectedFruits.length, selectedSize.freeFruits),
+      freeToppingsUsed: 0,
+      freeFruitsUsed: 0,
     });
 
     setAddedCount((prev) => prev + quantity);
