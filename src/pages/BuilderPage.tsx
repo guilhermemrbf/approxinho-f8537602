@@ -280,9 +280,8 @@ const BuilderPage = () => {
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
                     <div className="mt-1.5 md:mt-2 text-[9px] md:text-xs text-muted-foreground space-y-0.5 w-full">
-                      <p>✓ {size.freeComplements >= 99 ? "Livres" : `${size.freeComplements} acomp.`}</p>
-                      <p>✓ {size.freeToppings >= 99 ? "Livres" : `${size.freeToppings} calda`}</p>
-                      <p>✓ {size.freeFruits >= 99 ? "Livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""}`}</p>
+                      <p>✓ {size.freeComplements} acomp. inclusos</p>
+                      <p className="text-primary font-semibold">Supremo R$ {size.supremoPrice.toFixed(2).replace(".", ",")}</p>
                     </div>
                   </button>
                 ))}
