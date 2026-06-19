@@ -13,12 +13,12 @@ export function Footer() {
             <div className="flex items-center gap-2 mb-4">
               <img src={logoRoxinho.url} alt="Roxinho" className="h-10 w-10 object-contain" />
               <div>
-                <h3 className="text-lg font-bold">Roxinho</h3>
-                <p className="text-xs text-muted-foreground">Delivery</p>
+                <h3 className="text-lg font-bold">{businessInfo.name}</h3>
+                <p className="text-xs text-muted-foreground">{businessInfo.tagline}</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">
-              O melhor açaí da região, do seu jeito! Monte seu copo com toppings ilimitados.
+              O seu momento açaí, do seu jeito! Monte seu pote ou escolha um dos nossos Supremos.
             </p>
           </div>
 
@@ -53,25 +53,31 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Contato</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-0.5 text-primary" />
-                {businessInfo.address}
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                <a 
-                  href={`https://wa.me/${businessInfo.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
-                >
-                  {businessInfo.phone}
-                </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" />
-                {businessInfo.hours}
-              </li>
+              {businessInfo.address && (
+                <li className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 mt-0.5 text-primary" />
+                  {businessInfo.address}
+                </li>
+              )}
+              {businessInfo.phone && (
+                <li className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-primary" />
+                  <a
+                    href={businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-primary transition-colors"
+                  >
+                    {businessInfo.phone}
+                  </a>
+                </li>
+              )}
+              {businessInfo.hours && (
+                <li className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  {businessInfo.hours}
+                </li>
+              )}
             </ul>
           </div>
 
@@ -92,17 +98,19 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
             </div>
-            <div className="mt-4 p-3 rounded-lg bg-primary/10">
-              <p className="text-xs font-medium text-primary">Taxa de Entrega</p>
-              <p className="text-lg font-bold">R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}</p>
-            </div>
+            {businessInfo.deliveryFee > 0 && (
+              <div className="mt-4 p-3 rounded-lg bg-primary/10">
+                <p className="text-xs font-medium text-primary">Taxa de Entrega</p>
+                <p className="text-lg font-bold">R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}</p>
+              </div>
+            )}
           </div>
         </div>
 
         <hr className="my-8 border-border" />
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© 2025 Roxinho. Todos os direitos reservados.</p>
+          <p>© 2025 {businessInfo.name}. Todos os direitos reservados.</p>
           <div className="flex gap-4">
             <Link to="/termos" className="hover:text-primary transition-colors">
               Termos de Uso
@@ -111,6 +119,16 @@ export function Footer() {
               Política de Privacidade
             </Link>
           </div>
+        </div>
+
+        {/* Discreet admin access dot */}
+        <div className="mt-6 flex justify-center">
+          <Link
+            to="/admin"
+            aria-label="admin"
+            title=""
+            className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30 hover:bg-primary transition-colors"
+          />
         </div>
       </div>
     </footer>
