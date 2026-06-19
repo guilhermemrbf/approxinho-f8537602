@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Copy, CreditCard, Banknote, QrCode, Loader2, Shield, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, Banknote, QrCode, Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOrders, PaymentMethod as DbPaymentMethod } from "@/hooks/useOrders";
 
 type PaymentMethod = "pix" | "credit" | "debit" | "cash";
+type DeliveryZone = "cidade" | "povoado";
 
 interface CustomerInfo {
   name: string;
@@ -60,10 +61,7 @@ const CheckoutPage = () => {
   
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [pixGenerated, setPixGenerated] = useState(false);
-  const [pixCode, setPixCode] = useState("");
-  const [pixQrBase64, setPixQrBase64] = useState("");
-  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>("cidade");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: "",
     phone: "",
@@ -74,7 +72,7 @@ const CheckoutPage = () => {
     notes: "",
   });
 
-  const deliveryFee = businessInfo.deliveryFee;
+  const deliveryFee = deliveryZone === "povoado" ? businessInfo.deliveryFee : 0;
   const grandTotal = totalPrice + deliveryFee;
 
   if (items.length === 0) {
@@ -171,40 +169,6 @@ const CheckoutPage = () => {
   };
 
   /**
-   * PONTO DE INTEGRAÇÃO: PIX
-   * 
-   * Substituir o mock abaixo por:
-   * ```
-   * const mp = new MercadoPagoClient();
-   * const payment = await mp.createPixPayment({
-   *   amount: grandTotal,
-   *   description: `Pedido Roxinho - ${items.length} item(s)`,
-   *   payer: { email: "cliente@email.com", firstName: customerInfo.name }
-   * });
-   * setPixCode(payment.point_of_interaction.transaction_data.qr_code);
-   * setPixQrBase64(payment.point_of_interaction.transaction_data.qr_code_base64);
-   * setPaymentId(payment.id);
-   * ```
-   */
-  const handleGeneratePix = async () => {
-    if (!validateForm()) return;
-    
-    setIsProcessing(true);
-    
-    // MOCK: Simula geração do PIX - substituir pela integração real
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    const mockCode = "00020126580014br.gov.bcb.pix0136acaibh-pix-key-placeholder5204000053039865802BR5925ACAI BH DELIVERY6008CIDADE62070503***6304ABCD";
-    setPixCode(mockCode);
-    setPixQrBase64(""); // Será preenchido pela API real
-    setPaymentId(null); // Será preenchido pela API real
-    setPixGenerated(true);
-    setIsProcessing(false);
-    
-    toast({ title: "PIX gerado com sucesso!", description: "Copie o código e pague no app do seu banco" });
-  };
-
-  /**
    * PONTO DE INTEGRAÇÃO: CARTÃO
    * 
    * Opção A - Checkout Pro (redirect):
@@ -258,39 +222,6 @@ const CheckoutPage = () => {
       }
     }
     
-    setIsProcessing(true);
-    const order = await submitOrder();
-    if (order) {
-      clearCart();
-      navigate("/pedidos");
-    }
-    setIsProcessing(false);
-  };
-
-  const copyPixCode = () => {
-    navigator.clipboard.writeText(pixCode);
-    toast({ title: "Código PIX copiado!" });
-  };
-
-  /**
-   * PONTO DE INTEGRAÇÃO: Confirmação PIX
-   * 
-   * Quando integrado, substituir por polling:
-   * ```
-   * const checkPayment = async () => {
-   *   if (!paymentId) return;
-   *   const status = await mp.getPaymentStatus(paymentId);
-   *   if (status.status === 'approved') {
-   *     await submitOrder();
-   *     clearCart();
-   *     navigate("/pedidos");
-   *   }
-   * };
-   * // Poll a cada 5 segundos
-   * const interval = setInterval(checkPayment, 5000);
-   * ```
-   */
-  const confirmPixPayment = async () => {
     setIsProcessing(true);
     const order = await submitOrder();
     if (order) {
