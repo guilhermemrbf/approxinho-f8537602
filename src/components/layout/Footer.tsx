@@ -121,14 +121,16 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Discreet admin access dot */}
-        <div className="mt-6 flex justify-center">
+        {/* Discreet admin access dot — larger invisible tap target for mobile */}
+        <div className="mt-6 mb-24 md:mb-0 flex justify-center">
           <Link
             to="/admin"
             aria-label="admin"
             title=""
-            className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30 hover:bg-primary transition-colors"
-          />
+            className="flex h-11 w-11 items-center justify-center rounded-full active:bg-muted/40 transition-colors"
+          >
+            <span className="block h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+          </Link>
         </div>
       </div>
     </footer>
