@@ -518,16 +518,12 @@ const BuilderPage = () => {
                 {/* Toppings */}
                 {selectedToppings.length > 0 && (
                   <div className="pb-3 border-b">
-                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Coberturas</h4>
+                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Adicionais Premium</h4>
                     <div className="flex flex-wrap gap-1 md:gap-2">
-                      {selectedToppings.map((t, i) => (
+                      {selectedToppings.map((t) => (
                         <span
                           key={t.id}
-                          className={`px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
-                            i < selectedSize.freeToppings
-                              ? "bg-success/20 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
+                          className="px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium bg-muted text-muted-foreground"
                         >
                           {t.icon} {t.name}
                         </span>
