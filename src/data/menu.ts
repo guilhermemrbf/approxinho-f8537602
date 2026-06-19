@@ -10,6 +10,7 @@ export interface Size {
   freeToppings: number;
   freeFruits: number;
   freeCream: boolean;
+  image?: string;
 }
 
 export interface Flavor {
@@ -19,6 +20,7 @@ export interface Flavor {
   icon: string;
   premium?: boolean;
   recipe?: string[];
+  image?: string;
 }
 
 export interface Complement {
@@ -26,6 +28,7 @@ export interface Complement {
   name: string;
   price: number;
   icon: string;
+  image?: string;
 }
 
 export interface Topping {
@@ -33,6 +36,7 @@ export interface Topping {
   name: string;
   price: number;
   icon: string;
+  image?: string;
 }
 
 export interface Fruit {
@@ -58,9 +62,9 @@ export interface Extra {
 }
 
 export const sizes: Size[] = [
-  { id: "240ml", name: "240ml", ml: 240, price: 15.0, supremoPrice: 17.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false },
-  { id: "360ml", name: "360ml", ml: 360, price: 18.0, supremoPrice: 20.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false },
-  { id: "480ml", name: "480ml", ml: 480, price: 22.0, supremoPrice: 24.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false },
+  { id: "240ml", name: "240ml", ml: 240, price: 15.0, supremoPrice: 17.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false, image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png" },
+  { id: "360ml", name: "360ml", ml: 360, price: 18.0, supremoPrice: 20.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false, image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png" },
+  { id: "480ml", name: "480ml", ml: 480, price: 22.0, supremoPrice: 24.0, freeComplements: 5, freeToppings: 0, freeFruits: 0, freeCream: false, image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png" },
 ];
 
 export const flavors: Flavor[] = [
@@ -69,6 +73,7 @@ export const flavors: Flavor[] = [
     name: "Pote Tradicional",
     description: "Monte do seu jeito com 5 acompanhamentos básicos inclusos",
     icon: "🍇",
+    image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png",
   },
   {
     id: "surpresinha-uva",
@@ -77,6 +82,7 @@ export const flavors: Flavor[] = [
     icon: "🍇",
     premium: true,
     recipe: ["Creme de leitinho", "Leite em pó", "Leite condensado", "Uva"],
+    image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png",
   },
   {
     id: "casadinho",
@@ -85,6 +91,7 @@ export const flavors: Flavor[] = [
     icon: "💜",
     premium: true,
     recipe: ["Creme de leitinho", "Creme de avelã", "1 fruta à sua escolha"],
+    image: "https://em-content.zobj.net/source/google/387/purple-heart_1f49c.png",
   },
   {
     id: "ferreiro",
@@ -93,28 +100,29 @@ export const flavors: Flavor[] = [
     icon: "🍫",
     premium: true,
     recipe: ["Creme de avelã", "Amendoim granulado", "Paçoca", "1 fruta à sua escolha"],
+    image: "https://em-content.zobj.net/source/google/387/chocolate-bar_1f36b.png",
   },
 ];
 
 export const complements: Complement[] = [
-  { id: "leite-po", name: "Leite em Pó", price: 1.0, icon: "🥛" },
-  { id: "leite-condensado", name: "Leite Condensado", price: 1.0, icon: "🥛" },
-  { id: "disquete", name: "Disquete", price: 1.0, icon: "🍪" },
-  { id: "amendoim-granulado", name: "Amendoim Granulado", price: 1.0, icon: "🥜" },
-  { id: "pacoca", name: "Paçoca", price: 1.0, icon: "🥜" },
-  { id: "flocos-crocantes", name: "Flocos Crocantes", price: 1.0, icon: "🥣" },
-  { id: "gotas-chocolate", name: "Gotas de Chocolate", price: 1.0, icon: "🍫" },
-  { id: "chocoball", name: "Chocoball", price: 1.0, icon: "🍫" },
-  { id: "granola", name: "Granola", price: 1.0, icon: "🌾" },
-  { id: "uva", name: "Uva", price: 1.0, icon: "🍇" },
-  { id: "morango", name: "Morango", price: 1.0, icon: "🍓" },
-  { id: "banana", name: "Banana", price: 1.0, icon: "🍌" },
-  { id: "kiwi", name: "Kiwi", price: 1.0, icon: "🥝" },
+  { id: "leite-po", name: "Leite em Pó", price: 1.0, icon: "🥛", image: "https://em-content.zobj.net/source/google/387/glass-of-milk_1f95b.png" },
+  { id: "leite-condensado", name: "Leite Condensado", price: 1.0, icon: "🥛", image: "https://em-content.zobj.net/source/google/387/pouring-liquid_1fad7.png" },
+  { id: "disquete", name: "Disquete", price: 1.0, icon: "🍪", image: "https://em-content.zobj.net/source/google/387/cookie_1f36a.png" },
+  { id: "amendoim-granulado", name: "Amendoim Granulado", price: 1.0, icon: "🥜", image: "https://em-content.zobj.net/source/google/387/peanuts_1f95c.png" },
+  { id: "pacoca", name: "Paçoca", price: 1.0, icon: "🥜", image: "https://em-content.zobj.net/source/google/387/peanuts_1f95c.png" },
+  { id: "flocos-crocantes", name: "Flocos Crocantes", price: 1.0, icon: "🥣", image: "https://em-content.zobj.net/source/google/387/bowl-with-spoon_1f963.png" },
+  { id: "gotas-chocolate", name: "Gotas de Chocolate", price: 1.0, icon: "🍫", image: "https://em-content.zobj.net/source/google/387/chocolate-bar_1f36b.png" },
+  { id: "chocoball", name: "Chocoball", price: 1.0, icon: "🍫", image: "https://em-content.zobj.net/source/google/387/chocolate-bar_1f36b.png" },
+  { id: "granola", name: "Granola", price: 1.0, icon: "🌾", image: "https://em-content.zobj.net/source/google/387/sheaf-of-rice_1f33e.png" },
+  { id: "uva", name: "Uva", price: 1.0, icon: "🍇", image: "https://em-content.zobj.net/source/google/387/grapes_1f347.png" },
+  { id: "morango", name: "Morango", price: 1.0, icon: "🍓", image: "https://em-content.zobj.net/source/google/387/strawberry_1f353.png" },
+  { id: "banana", name: "Banana", price: 1.0, icon: "🍌", image: "https://em-content.zobj.net/source/google/387/banana_1f34c.png" },
+  { id: "kiwi", name: "Kiwi", price: 1.0, icon: "🥝", image: "https://em-content.zobj.net/source/google/387/kiwi-fruit_1f95d.png" },
 ];
 
 export const toppings: Topping[] = [
-  { id: "creme-leitinho", name: "Creme de Leitinho", price: 2.0, icon: "🥛" },
-  { id: "creme-avela", name: "Creme de Avelã", price: 2.0, icon: "🍫" },
+  { id: "creme-leitinho", name: "Creme de Leitinho", price: 2.0, icon: "🥛", image: "https://em-content.zobj.net/source/google/387/glass-of-milk_1f95b.png" },
+  { id: "creme-avela", name: "Creme de Avelã", price: 2.0, icon: "🍫", image: "https://em-content.zobj.net/source/google/387/chocolate-bar_1f36b.png" },
 ];
 
 export const fruits: Fruit[] = [

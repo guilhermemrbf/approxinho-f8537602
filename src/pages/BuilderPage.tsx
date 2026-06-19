@@ -26,6 +26,15 @@ const steps: { key: Step; label: string; emoji: string }[] = [
   { key: "summary", label: "Resumo", emoji: "✨" },
 ];
 
+const ItemIcon = ({ icon, image, size = "md" }: { icon: string; image?: string; size?: "sm" | "md" | "lg" }) => {
+  const dims = size === "sm" ? "h-8 w-8" : size === "lg" ? "h-16 w-16" : "h-10 w-10";
+  if (image) {
+    return <img src={image} alt={icon} className={`${dims} object-contain`} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />;
+  }
+  const textSize = size === "sm" ? "text-lg" : size === "lg" ? "text-3xl" : "text-2xl";
+  return <span className={textSize}>{icon}</span>;
+};
+
 const BuilderPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -272,7 +281,7 @@ const BuilderPage = () => {
                         size.ml <= 300 ? "h-11 w-11 md:h-14 md:w-14" : size.ml <= 500 ? "h-13 w-13 md:h-16 md:w-16" : "h-16 w-16 md:h-20 md:w-20"
                       }`}
                     >
-                      🍇
+                      <ItemIcon icon="🍇" image={size.image} size="lg" />
                     </div>
                     <h3 className="font-bold text-xs md:text-base">{size.name}</h3>
                     <p className="text-sm md:text-xl font-extrabold text-primary">{size.ml}ml</p>
@@ -327,7 +336,7 @@ const BuilderPage = () => {
                       </motion.div>
                     )}
                     <div className="flex items-center gap-3">
-                      <span className="text-2xl md:text-4xl">{flavor.icon}</span>
+                      <ItemIcon icon={flavor.icon} image={flavor.image} size="lg" />
                       <div>
                         <h3 className="font-bold text-sm md:text-lg">{flavor.name}</h3>
                         <p className="text-[11px] md:text-sm text-muted-foreground">{flavor.description}</p>
@@ -387,7 +396,7 @@ const BuilderPage = () => {
                           <Check className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary-foreground" />
                         </motion.div>
                       )}
-                      <span className="text-lg md:text-2xl">{complement.icon}</span>
+                      <ItemIcon icon={complement.icon} image={complement.image} size="md" />
                       <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{complement.name}</p>
                       <p
                         className={`text-[9px] md:text-xs mt-0.5 font-medium ${
@@ -443,7 +452,7 @@ const BuilderPage = () => {
                           <Check className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary-foreground" />
                         </motion.div>
                       )}
-                      <span className="text-lg md:text-2xl">{topping.icon}</span>
+                      <ItemIcon icon={topping.icon} image={topping.image} size="md" />
                       <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{topping.name}</p>
                       <p className="text-[9px] md:text-xs mt-0.5 font-medium text-muted-foreground">
                         +R${topping.price.toFixed(0)}
@@ -476,7 +485,7 @@ const BuilderPage = () => {
                 {/* Size & Flavor */}
                 <div className="flex items-center gap-3 pb-3 border-b">
                   <div className="h-12 w-12 md:h-16 md:w-16 rounded-full gradient-açai flex items-center justify-center text-2xl md:text-3xl shrink-0">
-                    {selectedFlavor.icon}
+                    <ItemIcon icon={selectedFlavor.icon} image={selectedFlavor.image} size="lg" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold text-sm md:text-lg">{selectedFlavor.name}</h3>
@@ -497,13 +506,13 @@ const BuilderPage = () => {
                       {selectedComplements.map((c, i) => (
                         <span
                           key={c.id}
-                          className={`px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
                             i < selectedSize.freeComplements
                               ? "bg-success/20 text-success"
                               : "bg-muted text-muted-foreground"
                           }`}
                         >
-                          {c.icon} {c.name}
+                          <ItemIcon icon={c.icon} image={c.image} size="sm" /> {c.name}
                         </span>
                       ))}
                     </div>
@@ -523,9 +532,9 @@ const BuilderPage = () => {
                       {selectedToppings.map((t) => (
                         <span
                           key={t.id}
-                          className="px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium bg-muted text-muted-foreground"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium bg-muted text-muted-foreground"
                         >
-                          {t.icon} {t.name}
+                          <ItemIcon icon={t.icon} image={t.image} size="sm" /> {t.name}
                         </span>
                       ))}
                     </div>
