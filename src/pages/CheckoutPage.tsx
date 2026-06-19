@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Copy, CreditCard, Banknote, QrCode, Loader2, Shield, Clock } from "lucide-react";
+import { ArrowLeft, CreditCard, Banknote, QrCode, Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useOrders, PaymentMethod as DbPaymentMethod } from "@/hooks/useOrders";
 
 type PaymentMethod = "pix" | "credit" | "debit" | "cash";
+type DeliveryZone = "cidade" | "povoado";
 
 interface CustomerInfo {
   name: string;
@@ -60,10 +61,7 @@ const CheckoutPage = () => {
   
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("pix");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [pixGenerated, setPixGenerated] = useState(false);
-  const [pixCode, setPixCode] = useState("");
-  const [pixQrBase64, setPixQrBase64] = useState("");
-  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [deliveryZone, setDeliveryZone] = useState<DeliveryZone>("cidade");
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: "",
     phone: "",
@@ -74,7 +72,7 @@ const CheckoutPage = () => {
     notes: "",
   });
 
-  const deliveryFee = businessInfo.deliveryFee;
+  const deliveryFee = deliveryZone === "povoado" ? businessInfo.deliveryFee : 0;
   const grandTotal = totalPrice + deliveryFee;
 
   if (items.length === 0) {
@@ -171,40 +169,6 @@ const CheckoutPage = () => {
   };
 
   /**
-   * PONTO DE INTEGRAÇÃO: PIX
-   * 
-   * Substituir o mock abaixo por:
-   * ```
-   * const mp = new MercadoPagoClient();
-   * const payment = await mp.createPixPayment({
-   *   amount: grandTotal,
-   *   description: `Pedido Roxinho - ${items.length} item(s)`,
-   *   payer: { email: "cliente@email.com", firstName: customerInfo.name }
-   * });
-   * setPixCode(payment.point_of_interaction.transaction_data.qr_code);
-   * setPixQrBase64(payment.point_of_interaction.transaction_data.qr_code_base64);
-   * setPaymentId(payment.id);
-   * ```
-   */
-  const handleGeneratePix = async () => {
-    if (!validateForm()) return;
-    
-    setIsProcessing(true);
-    
-    // MOCK: Simula geração do PIX - substituir pela integração real
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    const mockCode = "00020126580014br.gov.bcb.pix0136acaibh-pix-key-placeholder5204000053039865802BR5925ACAI BH DELIVERY6008CIDADE62070503***6304ABCD";
-    setPixCode(mockCode);
-    setPixQrBase64(""); // Será preenchido pela API real
-    setPaymentId(null); // Será preenchido pela API real
-    setPixGenerated(true);
-    setIsProcessing(false);
-    
-    toast({ title: "PIX gerado com sucesso!", description: "Copie o código e pague no app do seu banco" });
-  };
-
-  /**
    * PONTO DE INTEGRAÇÃO: CARTÃO
    * 
    * Opção A - Checkout Pro (redirect):
@@ -258,39 +222,6 @@ const CheckoutPage = () => {
       }
     }
     
-    setIsProcessing(true);
-    const order = await submitOrder();
-    if (order) {
-      clearCart();
-      navigate("/pedidos");
-    }
-    setIsProcessing(false);
-  };
-
-  const copyPixCode = () => {
-    navigator.clipboard.writeText(pixCode);
-    toast({ title: "Código PIX copiado!" });
-  };
-
-  /**
-   * PONTO DE INTEGRAÇÃO: Confirmação PIX
-   * 
-   * Quando integrado, substituir por polling:
-   * ```
-   * const checkPayment = async () => {
-   *   if (!paymentId) return;
-   *   const status = await mp.getPaymentStatus(paymentId);
-   *   if (status.status === 'approved') {
-   *     await submitOrder();
-   *     clearCart();
-   *     navigate("/pedidos");
-   *   }
-   * };
-   * // Poll a cada 5 segundos
-   * const interval = setInterval(checkPayment, 5000);
-   * ```
-   */
-  const confirmPixPayment = async () => {
     setIsProcessing(true);
     const order = await submitOrder();
     if (order) {
@@ -380,6 +311,47 @@ const CheckoutPage = () => {
                   />
                 </div>
               </div>
+
+              {/* Zona de entrega */}
+              <div className="mt-4 pt-4 border-t">
+                <Label className="mb-2 block">Local de entrega</Label>
+                <RadioGroup
+                  value={deliveryZone}
+                  onValueChange={(v) => setDeliveryZone(v as DeliveryZone)}
+                  className="grid gap-2 sm:grid-cols-2"
+                >
+                  <label
+                    htmlFor="zone-cidade"
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      deliveryZone === "cidade"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="cidade" id="zone-cidade" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Uíbaí (cidade)</p>
+                      <p className="text-xs text-green-600 font-medium">Entrega grátis</p>
+                    </div>
+                  </label>
+                  <label
+                    htmlFor="zone-povoado"
+                    className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      deliveryZone === "povoado"
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <RadioGroupItem value="povoado" id="zone-povoado" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm">Povoado</p>
+                      <p className="text-xs text-muted-foreground">
+                        Taxa R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+                  </label>
+                </RadioGroup>
+              </div>
             </motion.div>
 
             {/* Forma de Pagamento */}
@@ -397,7 +369,6 @@ const CheckoutPage = () => {
                 value={paymentMethod}
                 onValueChange={(value) => {
                   setPaymentMethod(value as PaymentMethod);
-                  setPixGenerated(false);
                 }}
                 className="grid gap-3"
               >
@@ -416,11 +387,8 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">PIX</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Aprovação instantânea</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
-                  <span className="text-xs font-medium text-green-600 bg-green-500/10 px-2 py-1 rounded-full shrink-0">
-                    Recomendado
-                  </span>
                 </label>
 
                 {/* Cartão de Crédito */}
@@ -438,7 +406,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Cartão de Crédito</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
                 </label>
 
@@ -457,7 +425,7 @@ const CheckoutPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm sm:text-base">Cartão de Débito</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Na entrega (maquininha)</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">Motoboy cobra na entrega</p>
                   </div>
                 </label>
 
@@ -502,68 +470,6 @@ const CheckoutPage = () => {
                 </motion.div>
               )}
 
-              {/* PIX QR Code */}
-              {paymentMethod === "pix" && pixGenerated && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mt-6 pt-6 border-t text-center"
-                >
-                  {/* QR Code - será substituído pelo QR real */}
-                  <div className="bg-white p-4 rounded-xl inline-block mb-4 shadow-sm">
-                    {pixQrBase64 ? (
-                      <img src={`data:image/png;base64,${pixQrBase64}`} alt="QR Code PIX" className="h-48 w-48" />
-                    ) : (
-                      <div className="h-48 w-48 bg-gradient-to-br from-muted to-muted-foreground/20 rounded-lg flex flex-col items-center justify-center gap-2">
-                        <QrCode className="h-20 w-20 text-foreground/30" />
-                        <p className="text-xs text-muted-foreground">QR Code Simulado</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Copie o código abaixo e pague no app do seu banco
-                  </p>
-                  
-                  <div className="flex gap-2">
-                    <Input
-                      value={pixCode}
-                      readOnly
-                      className="text-xs font-mono"
-                    />
-                    <Button variant="outline" size="icon" onClick={copyPixCode} className="shrink-0">
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  {/* Timer indicativo */}
-                  <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>O código PIX expira em 30 minutos</span>
-                  </div>
-                  
-                  <Button
-                    variant="hero"
-                    className="w-full mt-4"
-                    onClick={confirmPixPayment}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Check className="h-4 w-4 mr-2" />
-                    )}
-                    Já paguei - Confirmar Pedido
-                  </Button>
-                  
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {paymentId 
-                      ? "O pagamento será verificado automaticamente" 
-                      : "⚠️ Integração em desenvolvimento - pedido será criado como pendente"
-                    }
-                  </p>
-                </motion.div>
-              )}
             </motion.div>
 
             {/* Observações */}
@@ -626,23 +532,32 @@ const CheckoutPage = () => {
               </div>
 
               {/* Botão de ação baseado no método de pagamento */}
-              {paymentMethod === "pix" && !pixGenerated && (
+              {paymentMethod === "pix" && (
                 <Button
                   variant="hero"
                   size="lg"
                   className="w-full"
-                  onClick={handleGeneratePix}
+                  onClick={async () => {
+                    if (!validateForm()) return;
+                    setIsProcessing(true);
+                    const order = await submitOrder();
+                    if (order) {
+                      clearCart();
+                      navigate("/pedidos");
+                    }
+                    setIsProcessing(false);
+                  }}
                   disabled={isProcessing}
                 >
                   {isProcessing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Gerando PIX...
+                      Enviando pedido...
                     </>
                   ) : (
                     <>
                       <QrCode className="h-4 w-4 mr-2" />
-                      Gerar QR Code PIX
+                      Confirmar Pedido (PIX na entrega)
                     </>
                   )}
                 </Button>
