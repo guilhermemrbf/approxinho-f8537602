@@ -415,23 +415,15 @@ const BuilderPage = () => {
               className="space-y-3 md:space-y-6"
             >
               <div className="text-center px-2">
-                <h2 className="text-lg md:text-2xl font-bold">Escolha as Caldas</h2>
-                {freeToppingsLeft > 0 && (
-                  <div className="inline-flex items-center gap-2 mt-1.5 md:mt-2 px-3 py-1 md:py-1.5 rounded-full bg-success/10 border border-success/30">
-                    <span className="text-success font-bold text-xs md:text-sm">{freeToppingsLeft} GRÁTIS</span>
-                    <span className="text-[10px] md:text-xs text-muted-foreground">restantes</span>
-                  </div>
-                )}
+                <h2 className="text-lg md:text-2xl font-bold">Adicionais Premium</h2>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                  Adicionais: R$ 1,00 cada
+                  Opcional • R$ 2,00 cada
                 </p>
               </div>
 
               <div className="grid gap-1.5 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
                 {toppings.map((topping) => {
                   const isSelected = selectedToppings.find((t) => t.id === topping.id);
-                  const selectedIndex = selectedToppings.findIndex((t) => t.id === topping.id);
-                  const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeToppings || 0);
 
                   return (
                     <button
@@ -454,76 +446,8 @@ const BuilderPage = () => {
                       )}
                       <span className="text-lg md:text-2xl">{topping.icon}</span>
                       <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{topping.name}</p>
-                      <p
-                        className={`text-[9px] md:text-xs mt-0.5 font-medium ${
-                          isFree ? "text-success" : "text-muted-foreground"
-                        }`}
-                      >
-                        {isFree ? "GRÁTIS" : `+R$${topping.price.toFixed(0)}`}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {/* FRUITS STEP */}
-          {currentStep === "fruits" && (
-            <motion.div
-              key="fruits"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-3 md:space-y-6"
-            >
-              <div className="text-center px-2">
-                <h2 className="text-lg md:text-2xl font-bold">Escolha as Frutas</h2>
-                {freeFruitsLeft > 0 && (
-                  <div className="inline-flex items-center gap-2 mt-1.5 md:mt-2 px-3 py-1 md:py-1.5 rounded-full bg-success/10 border border-success/30">
-                    <span className="text-success font-bold text-xs md:text-sm">{freeFruitsLeft} GRÁTIS</span>
-                    <span className="text-[10px] md:text-xs text-muted-foreground">restantes</span>
-                  </div>
-                )}
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                  Adicionais: R$ 3,00 cada
-                </p>
-              </div>
-
-              <div className="grid gap-2 md:gap-3 grid-cols-3 sm:grid-cols-4">
-                {fruits.map((fruit) => {
-                  const isSelected = selectedFruits.find((f) => f.id === fruit.id);
-                  const selectedIndex = selectedFruits.findIndex((f) => f.id === fruit.id);
-                  const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeFruits || 0);
-
-                  return (
-                    <button
-                      key={fruit.id}
-                      onClick={() => toggleFruit(fruit)}
-                      className={`relative p-3 md:p-6 rounded-xl md:rounded-2xl border-2 transition-all active:scale-[0.98] ${
-                        isSelected
-                          ? "border-primary bg-primary/5 shadow-md shadow-primary/20"
-                          : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
-                      }`}
-                    >
-                      {isSelected && (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-1.5 right-1.5 md:top-3 md:right-3 h-5 w-5 md:h-6 md:w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
-                        >
-                          <Check className="h-3 w-3 md:h-4 md:w-4 text-primary-foreground" />
-                        </motion.div>
-                      )}
-                      <span className="text-3xl md:text-5xl">{fruit.icon}</span>
-                      <p className="font-bold text-xs md:text-base mt-1.5 md:mt-3">{fruit.name}</p>
-                      <p
-                        className={`text-[10px] md:text-sm mt-0.5 md:mt-1 font-medium ${
-                          isFree ? "text-success" : "text-muted-foreground"
-                        }`}
-                      >
-                        {isFree ? "GRÁTIS" : `+R$${fruit.price.toFixed(0)}`}
+                      <p className="text-[9px] md:text-xs mt-0.5 font-medium text-muted-foreground">
+                        +R${topping.price.toFixed(0)}
                       </p>
                     </button>
                   );
@@ -613,32 +537,6 @@ const BuilderPage = () => {
                     {breakdown.toppings > 0 && (
                       <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
                         + R$ {breakdown.toppings.toFixed(2).replace(".", ",")}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Fruits */}
-                {selectedFruits.length > 0 && (
-                  <div className="pb-3 border-b">
-                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Frutas</h4>
-                    <div className="flex flex-wrap gap-1 md:gap-2">
-                      {selectedFruits.map((f, i) => (
-                        <span
-                          key={f.id}
-                          className={`px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
-                            i < selectedSize.freeFruits
-                              ? "bg-success/20 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {f.icon} {f.name}
-                        </span>
-                      ))}
-                    </div>
-                    {breakdown.fruits > 0 && (
-                      <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                        + R$ {breakdown.fruits.toFixed(2).replace(".", ",")}
                       </p>
                     )}
                   </div>
