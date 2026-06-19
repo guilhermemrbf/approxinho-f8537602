@@ -14,14 +14,14 @@ export function SizesSection() {
         once: true
       }} className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground sm:text-4xl">
-            Escolha o <span className="text-primary font-extrabold">Tamanho</span>
+            Nossos <span className="text-primary font-extrabold">Potes</span>
           </h2>
           <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
-            De 200ml a 1 litro! Acompanhamentos, caldas e frutas inclusos conforme o tamanho.
+            240ml, 360ml ou 480ml • 5 acompanhamentos básicos inclusos em todos os tamanhos.
           </p>
         </motion.div>
 
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
           {sizes.map((size, index) => <motion.div key={size.id} initial={{
           opacity: 0,
           y: 20
@@ -42,7 +42,7 @@ export function SizesSection() {
                   <div className="relative mx-auto mb-3 md:mb-6 flex items-center justify-center">
                     <div className={`
                         rounded-full gradient-açai flex items-center justify-center text-2xl md:text-4xl shadow-lg
-                        ${size.ml <= 300 ? 'h-12 w-12 md:h-16 md:w-16' : size.ml <= 500 ? 'h-14 w-14 md:h-20 md:w-20' : size.ml <= 700 ? 'h-16 w-16 md:h-24 md:w-24' : 'h-20 w-20 md:h-28 md:w-28'}
+                        ${size.ml <= 240 ? 'h-14 w-14 md:h-20 md:w-20' : size.ml <= 360 ? 'h-16 w-16 md:h-24 md:w-24' : 'h-20 w-20 md:h-28 md:w-28'}
                       `}>
                       🍇
                     </div>
@@ -58,10 +58,8 @@ export function SizesSection() {
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
                     <div className="mt-3 md:mt-4 text-xs md:text-sm text-muted-foreground space-y-1">
-                      <p>✓ {size.freeComplements >= 99 ? "Acomp. livres" : `${size.freeComplements} acomp. grátis`}</p>
-                      <p>✓ {size.freeToppings >= 99 ? "Caldas livres" : `${size.freeToppings} calda grátis`}</p>
-                      <p>✓ {size.freeFruits >= 99 ? "Frutas livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""} grátis`}</p>
-                      {size.freeCream && <p>✓ Creme grátis</p>}
+                      <p>✓ 5 acompanhamentos inclusos</p>
+                      <p>✓ Supremo por R$ {size.supremoPrice.toFixed(2).replace(".", ",")}</p>
                     </div>
                     <div className="mt-4 md:mt-6 inline-flex items-center gap-2 text-sm md:text-base text-primary font-semibold group-hover:gap-3 transition-all">
                       Escolher

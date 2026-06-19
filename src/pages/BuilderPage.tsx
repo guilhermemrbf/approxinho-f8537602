@@ -10,22 +10,19 @@ import {
   flavors,
   complements,
   toppings,
-  fruits,
   Size,
   Flavor,
   Complement,
   Topping,
-  Fruit,
 } from "@/data/menu";
 
-type Step = "size" | "flavor" | "complements" | "toppings" | "fruits" | "summary";
+type Step = "size" | "flavor" | "complements" | "toppings" | "summary";
 
 const steps: { key: Step; label: string; emoji: string }[] = [
   { key: "size", label: "Tamanho", emoji: "📏" },
-  { key: "flavor", label: "Sabor", emoji: "🍇" },
+  { key: "flavor", label: "Tipo", emoji: "🍇" },
   { key: "complements", label: "Acomp.", emoji: "🍫" },
-  { key: "toppings", label: "Caldas", emoji: "🍯" },
-  { key: "fruits", label: "Frutas", emoji: "🍓" },
+  { key: "toppings", label: "Premium", emoji: "✨" },
   { key: "summary", label: "Resumo", emoji: "✨" },
 ];
 
@@ -44,7 +41,7 @@ const BuilderPage = () => {
   const [selectedFlavor, setSelectedFlavor] = useState<Flavor | null>(null);
   const [selectedComplements, setSelectedComplements] = useState<Complement[]>([]);
   const [selectedToppings, setSelectedToppings] = useState<Topping[]>([]);
-  const [selectedFruits, setSelectedFruits] = useState<Fruit[]>([]);
+  const [selectedFruits] = useState<never[]>([]);
   const [quantity, setQuantity] = useState(1);
   const [addedCount, setAddedCount] = useState(0);
 
@@ -53,29 +50,21 @@ const BuilderPage = () => {
   const freeComplementsLeft = selectedSize
     ? selectedSize.freeComplements - Math.min(selectedComplements.length, selectedSize.freeComplements)
     : 0;
-  const freeToppingsLeft = selectedSize
-    ? selectedSize.freeToppings - Math.min(selectedToppings.length, selectedSize.freeToppings)
-    : 0;
-  const freeFruitsLeft = selectedSize
-    ? selectedSize.freeFruits - Math.min(selectedFruits.length, selectedSize.freeFruits)
-    : 0;
 
   const { totalPrice, breakdown } = useMemo(() => {
     if (!selectedSize) return { totalPrice: 0, breakdown: { base: 0, complements: 0, toppings: 0, fruits: 0 } };
 
-    const base = selectedSize.price;
+    const isSupremo = selectedFlavor?.premium ?? false;
+    const base = isSupremo ? selectedSize.supremoPrice : selectedSize.price;
     const paidComplements = selectedComplements.slice(selectedSize.freeComplements);
     const complementsPrice = paidComplements.reduce((sum, c) => sum + c.price, 0);
-    const paidToppings = selectedToppings.slice(selectedSize.freeToppings);
-    const toppingsPrice = paidToppings.reduce((sum, t) => sum + t.price, 0);
-    const paidFruits = selectedFruits.slice(selectedSize.freeFruits);
-    const fruitsPrice = paidFruits.reduce((sum, f) => sum + f.price, 0);
+    const toppingsPrice = selectedToppings.reduce((sum, t) => sum + t.price, 0);
 
     return {
-      totalPrice: base + complementsPrice + toppingsPrice + fruitsPrice,
-      breakdown: { base, complements: complementsPrice, toppings: toppingsPrice, fruits: fruitsPrice },
+      totalPrice: base + complementsPrice + toppingsPrice,
+      breakdown: { base, complements: complementsPrice, toppings: toppingsPrice, fruits: 0 },
     };
-  }, [selectedSize, selectedComplements, selectedToppings, selectedFruits]);
+  }, [selectedSize, selectedFlavor, selectedComplements, selectedToppings]);
 
   const canProceed = () => {
     switch (currentStep) {
@@ -122,20 +111,11 @@ const BuilderPage = () => {
     );
   };
 
-  const toggleFruit = (fruit: Fruit) => {
-    setSelectedFruits((prev) =>
-      prev.find((f) => f.id === fruit.id)
-        ? prev.filter((f) => f.id !== fruit.id)
-        : [...prev, fruit]
-    );
-  };
-
   const resetBuilder = () => {
     setSelectedSize(null);
     setSelectedFlavor(null);
     setSelectedComplements([]);
     setSelectedToppings([]);
-    setSelectedFruits([]);
     setQuantity(1);
     setCurrentStep("size");
     setTimeout(scrollToTop, 50);
@@ -149,12 +129,12 @@ const BuilderPage = () => {
       flavor: selectedFlavor,
       complements: selectedComplements,
       toppings: selectedToppings,
-      fruits: selectedFruits,
+      fruits: [],
       quantity,
       totalPrice,
       freeComplementsUsed: Math.min(selectedComplements.length, selectedSize.freeComplements),
-      freeToppingsUsed: Math.min(selectedToppings.length, selectedSize.freeToppings),
-      freeFruitsUsed: Math.min(selectedFruits.length, selectedSize.freeFruits),
+      freeToppingsUsed: 0,
+      freeFruitsUsed: 0,
     });
 
     setAddedCount((prev) => prev + quantity);
@@ -300,9 +280,8 @@ const BuilderPage = () => {
                       R$ {size.price.toFixed(2).replace(".", ",")}
                     </p>
                     <div className="mt-1.5 md:mt-2 text-[9px] md:text-xs text-muted-foreground space-y-0.5 w-full">
-                      <p>✓ {size.freeComplements >= 99 ? "Livres" : `${size.freeComplements} acomp.`}</p>
-                      <p>✓ {size.freeToppings >= 99 ? "Livres" : `${size.freeToppings} calda`}</p>
-                      <p>✓ {size.freeFruits >= 99 ? "Livres" : `${size.freeFruits} fruta${size.freeFruits > 1 ? "s" : ""}`}</p>
+                      <p>✓ {size.freeComplements} acomp. inclusos</p>
+                      <p className="text-primary font-semibold">Supremo R$ {size.supremoPrice.toFixed(2).replace(".", ",")}</p>
                     </div>
                   </button>
                 ))}
@@ -435,23 +414,15 @@ const BuilderPage = () => {
               className="space-y-3 md:space-y-6"
             >
               <div className="text-center px-2">
-                <h2 className="text-lg md:text-2xl font-bold">Escolha as Caldas</h2>
-                {freeToppingsLeft > 0 && (
-                  <div className="inline-flex items-center gap-2 mt-1.5 md:mt-2 px-3 py-1 md:py-1.5 rounded-full bg-success/10 border border-success/30">
-                    <span className="text-success font-bold text-xs md:text-sm">{freeToppingsLeft} GRÁTIS</span>
-                    <span className="text-[10px] md:text-xs text-muted-foreground">restantes</span>
-                  </div>
-                )}
+                <h2 className="text-lg md:text-2xl font-bold">Adicionais Premium</h2>
                 <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                  Adicionais: R$ 1,00 cada
+                  Opcional • R$ 2,00 cada
                 </p>
               </div>
 
               <div className="grid gap-1.5 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
                 {toppings.map((topping) => {
                   const isSelected = selectedToppings.find((t) => t.id === topping.id);
-                  const selectedIndex = selectedToppings.findIndex((t) => t.id === topping.id);
-                  const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeToppings || 0);
 
                   return (
                     <button
@@ -474,76 +445,8 @@ const BuilderPage = () => {
                       )}
                       <span className="text-lg md:text-2xl">{topping.icon}</span>
                       <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{topping.name}</p>
-                      <p
-                        className={`text-[9px] md:text-xs mt-0.5 font-medium ${
-                          isFree ? "text-success" : "text-muted-foreground"
-                        }`}
-                      >
-                        {isFree ? "GRÁTIS" : `+R$${topping.price.toFixed(0)}`}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-
-          {/* FRUITS STEP */}
-          {currentStep === "fruits" && (
-            <motion.div
-              key="fruits"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-3 md:space-y-6"
-            >
-              <div className="text-center px-2">
-                <h2 className="text-lg md:text-2xl font-bold">Escolha as Frutas</h2>
-                {freeFruitsLeft > 0 && (
-                  <div className="inline-flex items-center gap-2 mt-1.5 md:mt-2 px-3 py-1 md:py-1.5 rounded-full bg-success/10 border border-success/30">
-                    <span className="text-success font-bold text-xs md:text-sm">{freeFruitsLeft} GRÁTIS</span>
-                    <span className="text-[10px] md:text-xs text-muted-foreground">restantes</span>
-                  </div>
-                )}
-                <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                  Adicionais: R$ 3,00 cada
-                </p>
-              </div>
-
-              <div className="grid gap-2 md:gap-3 grid-cols-3 sm:grid-cols-4">
-                {fruits.map((fruit) => {
-                  const isSelected = selectedFruits.find((f) => f.id === fruit.id);
-                  const selectedIndex = selectedFruits.findIndex((f) => f.id === fruit.id);
-                  const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeFruits || 0);
-
-                  return (
-                    <button
-                      key={fruit.id}
-                      onClick={() => toggleFruit(fruit)}
-                      className={`relative p-3 md:p-6 rounded-xl md:rounded-2xl border-2 transition-all active:scale-[0.98] ${
-                        isSelected
-                          ? "border-primary bg-primary/5 shadow-md shadow-primary/20"
-                          : "border-border bg-card hover:border-primary/50 active:bg-primary/5"
-                      }`}
-                    >
-                      {isSelected && (
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="absolute top-1.5 right-1.5 md:top-3 md:right-3 h-5 w-5 md:h-6 md:w-6 rounded-full bg-primary flex items-center justify-center shadow-md"
-                        >
-                          <Check className="h-3 w-3 md:h-4 md:w-4 text-primary-foreground" />
-                        </motion.div>
-                      )}
-                      <span className="text-3xl md:text-5xl">{fruit.icon}</span>
-                      <p className="font-bold text-xs md:text-base mt-1.5 md:mt-3">{fruit.name}</p>
-                      <p
-                        className={`text-[10px] md:text-sm mt-0.5 md:mt-1 font-medium ${
-                          isFree ? "text-success" : "text-muted-foreground"
-                        }`}
-                      >
-                        {isFree ? "GRÁTIS" : `+R$${fruit.price.toFixed(0)}`}
+                      <p className="text-[9px] md:text-xs mt-0.5 font-medium text-muted-foreground">
+                        +R${topping.price.toFixed(0)}
                       </p>
                     </button>
                   );
@@ -615,16 +518,12 @@ const BuilderPage = () => {
                 {/* Toppings */}
                 {selectedToppings.length > 0 && (
                   <div className="pb-3 border-b">
-                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Coberturas</h4>
+                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Adicionais Premium</h4>
                     <div className="flex flex-wrap gap-1 md:gap-2">
-                      {selectedToppings.map((t, i) => (
+                      {selectedToppings.map((t) => (
                         <span
                           key={t.id}
-                          className={`px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
-                            i < selectedSize.freeToppings
-                              ? "bg-success/20 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
+                          className="px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium bg-muted text-muted-foreground"
                         >
                           {t.icon} {t.name}
                         </span>
@@ -633,32 +532,6 @@ const BuilderPage = () => {
                     {breakdown.toppings > 0 && (
                       <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
                         + R$ {breakdown.toppings.toFixed(2).replace(".", ",")}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Fruits */}
-                {selectedFruits.length > 0 && (
-                  <div className="pb-3 border-b">
-                    <h4 className="font-semibold text-xs md:text-base mb-1.5 md:mb-2">Frutas</h4>
-                    <div className="flex flex-wrap gap-1 md:gap-2">
-                      {selectedFruits.map((f, i) => (
-                        <span
-                          key={f.id}
-                          className={`px-2 py-0.5 rounded-full text-[9px] md:text-xs font-medium ${
-                            i < selectedSize.freeFruits
-                              ? "bg-success/20 text-success"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {f.icon} {f.name}
-                        </span>
-                      ))}
-                    </div>
-                    {breakdown.fruits > 0 && (
-                      <p className="text-[10px] md:text-sm text-muted-foreground mt-1.5">
-                        + R$ {breakdown.fruits.toFixed(2).replace(".", ",")}
                       </p>
                     )}
                   </div>

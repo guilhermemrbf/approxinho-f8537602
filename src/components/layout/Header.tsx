@@ -26,24 +26,30 @@ export function Header() {
       <div className="hidden bg-secondary text-secondary-foreground py-2 md:block">
         <div className="container flex items-center justify-between text-xs">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              {businessInfo.hours}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" />
-              {businessInfo.address}
-            </span>
+            {businessInfo.hours && (
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                {businessInfo.hours}
+              </span>
+            )}
+            {businessInfo.address && (
+              <span className="flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" />
+                {businessInfo.address}
+              </span>
+            )}
           </div>
-          <a 
-            href={`https://wa.me/${businessInfo.whatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 font-semibold hover:text-primary transition-colors"
-          >
-            <Phone className="h-3.5 w-3.5" />
-            {businessInfo.phone}
-          </a>
+          {businessInfo.phone && (
+            <a
+              href={businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 font-semibold hover:text-primary transition-colors"
+            >
+              <Phone className="h-3.5 w-3.5" />
+              {businessInfo.phone}
+            </a>
+          )}
         </div>
       </div>
 
