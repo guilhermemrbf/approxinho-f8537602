@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, ShoppingCart, Check, Plus, Minus, Sparkles, Refr
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { IngredientImage } from "@/components/IngredientImage";
 import {
   sizes,
   flavors,
@@ -268,14 +267,12 @@ const BuilderPage = () => {
                         <Check className="h-3 w-3 md:h-4 md:w-4 text-primary-foreground" />
                       </motion.div>
                     )}
-                    <div className="rounded-full gradient-açai flex items-center justify-center shadow-lg mb-2 md:mb-3 p-1.5">
-                      <IngredientImage
-                        src={size.image}
-                        emoji="🍇"
-                        alt={`Pote de açaí ${size.name}`}
-                        size={80}
-                        rounded="full"
-                      />
+                    <div
+                      className={`rounded-full gradient-açai flex items-center justify-center text-xl md:text-2xl shadow-lg mb-2 md:mb-3 ${
+                        size.ml <= 300 ? "h-11 w-11 md:h-14 md:w-14" : size.ml <= 500 ? "h-13 w-13 md:h-16 md:w-16" : "h-16 w-16 md:h-20 md:w-20"
+                      }`}
+                    >
+                      🍇
                     </div>
                     <h3 className="font-bold text-xs md:text-base">{size.name}</h3>
                     <p className="text-sm md:text-xl font-extrabold text-primary">{size.ml}ml</p>
@@ -390,16 +387,8 @@ const BuilderPage = () => {
                           <Check className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary-foreground" />
                         </motion.div>
                       )}
-                      <div className="flex justify-center">
-                        <IngredientImage
-                          src={complement.image}
-                          emoji={complement.icon}
-                          alt={complement.name}
-                          size={56}
-                          rounded="full"
-                        />
-                      </div>
-                      <p className="font-medium text-[10px] md:text-sm mt-1 md:mt-2 leading-tight">{complement.name}</p>
+                      <span className="text-lg md:text-2xl">{complement.icon}</span>
+                      <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{complement.name}</p>
                       <p
                         className={`text-[9px] md:text-xs mt-0.5 font-medium ${
                           isFree ? "text-success" : "text-muted-foreground"
@@ -454,16 +443,8 @@ const BuilderPage = () => {
                           <Check className="h-2.5 w-2.5 md:h-3 md:w-3 text-primary-foreground" />
                         </motion.div>
                       )}
-                      <div className="flex justify-center">
-                        <IngredientImage
-                          src={topping.image}
-                          emoji={topping.icon}
-                          alt={topping.name}
-                          size={56}
-                          rounded="full"
-                        />
-                      </div>
-                      <p className="font-medium text-[10px] md:text-sm mt-1 md:mt-2 leading-tight">{topping.name}</p>
+                      <span className="text-lg md:text-2xl">{topping.icon}</span>
+                      <p className="font-medium text-[10px] md:text-sm mt-0.5 md:mt-2 leading-tight">{topping.name}</p>
                       <p className="text-[9px] md:text-xs mt-0.5 font-medium text-muted-foreground">
                         +R${topping.price.toFixed(0)}
                       </p>
