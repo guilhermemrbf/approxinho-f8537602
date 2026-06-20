@@ -141,7 +141,6 @@ export const businessInfo = {
   address: "Uíbai - BA",
   phone: "(74) 99913-0885",
   whatsapp: "5574999130885",
-  whatsappLink: "https://api.whatsapp.com/message/JRWCKST6D3XWB1?autoload=1&app_absent=0&utm_source=ig",
   hours: "",
   deliveryFee: 5,
   instagram: "",

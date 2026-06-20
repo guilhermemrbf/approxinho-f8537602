@@ -41,7 +41,7 @@ export function Header() {
           </div>
           {businessInfo.phone && (
             <a
-              href={businessInfo.whatsappLink || (businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#")}
+              href={businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 font-semibold hover:text-primary transition-colors"
