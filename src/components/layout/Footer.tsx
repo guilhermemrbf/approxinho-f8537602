@@ -98,12 +98,6 @@ export function Footer() {
                 <Facebook className="h-5 w-5" />
               </a>
             </div>
-            {businessInfo.deliveryFee > 0 && (
-              <div className="mt-4 p-3 rounded-lg bg-primary/10">
-                <p className="text-xs font-medium text-primary">Taxa de Entrega</p>
-                <p className="text-lg font-bold">R$ {businessInfo.deliveryFee.toFixed(2).replace(".", ",")}</p>
-              </div>
-            )}
           </div>
         </div>
 

@@ -98,15 +98,6 @@ export function HeroSection() {
                 <p className="text-xs opacity-80">30-45 minutos</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-primary-foreground/80">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/30 backdrop-blur-sm">
-                <Truck className="h-5 w-5" />
-              </div>
-              <div className="text-sm">
-                <p className="font-semibold">Taxa Única</p>
-                <p className="text-xs opacity-80">R$ 5,00</p>
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>
