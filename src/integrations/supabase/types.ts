@@ -101,6 +101,30 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_items: {
+        Row: {
+          available: boolean
+          category: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          category: string
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          category?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
