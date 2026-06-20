@@ -37,7 +37,7 @@ export function CTASection() {
               </Link>
               {businessInfo.whatsapp && (
                 <a
-                  href={`https://wa.me/${businessInfo.whatsapp}`}
+                  href={businessInfo.whatsappLink || `https://wa.me/${businessInfo.whatsapp}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto"

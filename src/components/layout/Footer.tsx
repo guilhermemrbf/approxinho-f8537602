@@ -63,7 +63,7 @@ export function Footer() {
                 <li className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-primary" />
                   <a
-                    href={businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#"}
+                    href={businessInfo.whatsappLink || (businessInfo.whatsapp ? `https://wa.me/${businessInfo.whatsapp}` : "#")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary transition-colors"
