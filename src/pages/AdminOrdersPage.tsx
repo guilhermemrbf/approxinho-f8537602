@@ -8,6 +8,7 @@ import { DashboardStats } from "@/components/admin/DashboardStats";
 import { StatusFilter } from "@/components/admin/StatusFilter";
 import { OrderCard } from "@/components/admin/OrderCard";
 import { useOrders, OrderStatus, Order } from "@/hooks/useOrders";
+import { StockManager } from "@/components/admin/StockManager";
 
 const AdminOrdersPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const AdminOrdersPage = () => {
   const { orders, loading, fetchOrders, updateOrderStatus } = useOrders();
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [activeTab, setActiveTab] = useState<"pedidos" | "estoque">("pedidos");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleLogout = async () => {
@@ -169,6 +171,25 @@ const AdminOrdersPage = () => {
       </header>
 
       <main className="container py-6">
+        {/* Tabs */}
+        <div className="flex border-b mb-6">
+          {(["pedidos", "estoque"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-3 text-sm font-semibold capitalize border-b-2 transition-colors ${
+                activeTab === tab
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab === "pedidos" ? "📦 Pedidos" : "🧂 Estoque"}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "pedidos" && (
+          <>
         {/* Instruções Rápidas */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -252,6 +273,20 @@ const AdminOrdersPage = () => {
               }
             </p>
           </motion.div>
+        )}
+          </>
+        )}
+
+        {activeTab === "estoque" && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold flex items-center gap-2">🧂 Gestão de Estoque</h2>
+              <p className="text-sm text-muted-foreground">
+                Itens desativados somem do app dos clientes em tempo real.
+              </p>
+            </div>
+            <StockManager />
+          </div>
         )}
       </main>
     </div>
