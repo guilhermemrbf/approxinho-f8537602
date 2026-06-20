@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, ShoppingCart, Check, Plus, Minus, Sparkles, Refr
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { useStock } from "@/hooks/useStock";
 import {
   sizes,
   flavors,
@@ -40,6 +41,14 @@ const BuilderPage = () => {
   const navigate = useNavigate();
   const { addItem, totalItems } = useCart();
   const { toast } = useToast();
+  const { items: stockItems } = useStock();
+  const unavailableIds = useMemo(
+    () => new Set(stockItems.filter((i) => !i.available).map((i) => i.id)),
+    [stockItems]
+  );
+  const visibleFlavors = useMemo(() => flavors.filter((f) => !unavailableIds.has(f.id)), [unavailableIds]);
+  const visibleComplements = useMemo(() => complements.filter((c) => !unavailableIds.has(c.id)), [unavailableIds]);
+  const visibleToppings = useMemo(() => toppings.filter((t) => !unavailableIds.has(t.id)), [unavailableIds]);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const initialSize = searchParams.get("size");
@@ -316,7 +325,7 @@ const BuilderPage = () => {
               </div>
 
               <div className="grid gap-2 md:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {flavors.map((flavor) => (
+                {visibleFlavors.map((flavor) => (
                   <button
                     key={flavor.id}
                     onClick={() => setSelectedFlavor(flavor)}
@@ -372,7 +381,7 @@ const BuilderPage = () => {
               </div>
 
               <div className="grid gap-1.5 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
-                {complements.map((complement) => {
+                {visibleComplements.map((complement) => {
                   const isSelected = selectedComplements.find((c) => c.id === complement.id);
                   const selectedIndex = selectedComplements.findIndex((c) => c.id === complement.id);
                   const isFree = selectedIndex !== -1 && selectedIndex < (selectedSize?.freeComplements || 0);
@@ -430,7 +439,7 @@ const BuilderPage = () => {
               </div>
 
               <div className="grid gap-1.5 md:gap-3 grid-cols-3 sm:grid-cols-4 lg:grid-cols-5">
-                {toppings.map((topping) => {
+                {visibleToppings.map((topping) => {
                   const isSelected = selectedToppings.find((t) => t.id === topping.id);
 
                   return (
