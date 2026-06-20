@@ -186,7 +186,7 @@ const CartPage = () => {
               </Link>
 
               <a
-                href={`https://wa.me/${businessInfo.whatsapp}`}
+                href={businessInfo.whatsappLink || `https://wa.me/${businessInfo.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
