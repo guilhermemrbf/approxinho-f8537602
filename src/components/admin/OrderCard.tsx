@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Package, CheckCircle, Truck, Phone, MapPin, CreditCard, Banknote, QrCode, ArrowRight, XCircle, MessageCircle } from "lucide-react";
+import { Clock, Package, CheckCircle, Truck, Phone, MapPin, CreditCard, Banknote, QrCode, ArrowRight, XCircle, MessageCircle, Printer, User, Hash, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -124,103 +124,124 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.03 }}
-      className={`bg-card rounded-2xl border-2 shadow-lg overflow-hidden transition-all hover:shadow-xl ${
-        isUrgent ? "border-yellow-400 ring-2 ring-yellow-200 shadow-yellow-100" : 
+      className={`bg-card rounded-2xl border-2 shadow-lg overflow-hidden transition-all hover:shadow-xl print:shadow-none print:border ${
+        isUrgent ? "border-yellow-400 ring-2 ring-yellow-200 shadow-yellow-100 animate-pulse-subtle" :
         isCancelled ? "border-red-300 opacity-70" : "border-border"
       }`}
     >
       {/* Status Header */}
-      <div className={`bg-gradient-to-r ${config.gradient} px-4 py-3 flex items-center justify-between`}>
-        <div className="flex items-center gap-2 text-white">
-          <StatusIcon className="h-4 w-4" />
-          <span className="font-bold text-sm">{config.emoji} {config.label}</span>
+      <div className={`bg-gradient-to-r ${config.gradient} px-4 py-3 flex items-center justify-between text-white`}>
+        <div className="flex items-center gap-2">
+          <div className="bg-white/20 rounded-full p-1.5">
+            <StatusIcon className="h-4 w-4" />
+          </div>
+          <div className="leading-tight">
+            <p className="font-bold text-sm">{config.emoji} {config.label}</p>
+            <p className="text-[10px] opacity-90 flex items-center gap-1">
+              <Clock className="h-2.5 w-2.5" />
+              há {formatTime(order.createdAt)}
+            </p>
+          </div>
         </div>
-        <Badge variant="secondary" className="bg-white/20 text-white border-0 font-mono text-xs">
-          #{order.orderNumber || order.id.slice(0, 6)}
-        </Badge>
+        <div className="text-right">
+          <Badge variant="secondary" className="bg-white/25 text-white border-0 font-mono text-xs gap-1">
+            <Hash className="h-3 w-3" />
+            {order.orderNumber || order.id.slice(0, 6)}
+          </Badge>
+        </div>
       </div>
 
       <div className="p-4">
-        {/* Tempo e Valor */}
-        <div className="flex items-center justify-between mb-3">
-          <Badge variant="outline" className={`text-xs ${isUrgent ? "border-yellow-400 text-yellow-600 bg-yellow-50" : "border-muted"}`}>
-            ⏱️ {formatTime(order.createdAt)}
-          </Badge>
-          <span className="text-xl font-bold text-primary">
-            R$ {order.total.toFixed(2).replace(".", ",")}
-          </span>
-        </div>
-
-        {/* Cliente */}
-        <div className="space-y-1.5 mb-3">
-          <p className="font-bold text-foreground text-base leading-tight">{order.customer}</p>
-          <div className="flex items-center gap-2">
-            <a 
+        {/* Comanda - Cabeçalho cliente */}
+        <div className="border-b-2 border-dashed border-border pb-3 mb-3">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="bg-primary/10 rounded-full p-1.5 shrink-0">
+                <User className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <p className="font-bold text-foreground text-base leading-tight truncate">{order.customer}</p>
+            </div>
+            <Badge variant="outline" className={`text-[10px] shrink-0 ${isUrgent ? "border-yellow-400 text-yellow-700 bg-yellow-50" : "border-muted"}`}>
+              ⏱️ {formatTime(order.createdAt)}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap pl-8">
+            <a
               href={`tel:${order.phone}`}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
             >
-              <Phone className="h-3 w-3 text-primary" />
+              <Phone className="h-3 w-3" />
               {order.phone}
             </a>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 transition-colors"
+              className="flex items-center gap-1 text-xs text-green-600 hover:text-green-700 transition-colors font-semibold"
             >
               <MessageCircle className="h-3 w-3" />
               WhatsApp
             </a>
           </div>
-          <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3 text-primary shrink-0 mt-0.5" />
-            <span className="line-clamp-2">{order.address}</span>
+          <p className="flex items-start gap-2 text-xs text-foreground/80 mt-2 pl-8">
+            <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+            <span className="leading-snug">{order.address}</span>
           </p>
         </div>
 
-        {/* Itens */}
-        <div className={`${config.bgLight} rounded-xl p-3 mb-3 border border-border/50`}>
-          <p className="text-xs font-bold text-muted-foreground mb-1.5 uppercase tracking-wider">📦 Itens</p>
-          <ul className="space-y-1">
-            {order.items.slice(0, 4).map((item, i) => (
-              <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                <span className="text-primary font-bold">•</span>
-                <span className="line-clamp-1">{item}</span>
+        {/* Itens da Comanda */}
+        <div className="mb-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Receipt className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[11px] font-bold text-foreground uppercase tracking-wider">
+              Itens do Pedido ({order.items.length})
+            </p>
+          </div>
+          <ul className="space-y-1.5 bg-muted/40 rounded-xl p-3 border border-border/50">
+            {order.items.map((item, i) => (
+              <li key={i} className="text-xs text-foreground flex items-start gap-2 pb-1.5 border-b border-dashed border-border/60 last:border-0 last:pb-0">
+                <span className="bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span className="leading-snug">{item}</span>
               </li>
             ))}
-            {order.items.length > 4 && (
-              <li className="text-xs text-muted-foreground italic">
-                +{order.items.length - 4} item(s)
-              </li>
-            )}
           </ul>
         </div>
 
         {/* Observações */}
         {order.notes && (
-          <div className="mb-3 p-2 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-xs text-amber-800">📝 {order.notes}</p>
+          <div className="mb-3 p-2.5 bg-amber-50 rounded-lg border-l-4 border-amber-400">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-0.5">📝 Observação</p>
+            <p className="text-xs text-amber-900 leading-snug">{order.notes}</p>
           </div>
         )}
 
-        {/* Pagamento */}
-        <div className="flex items-center justify-between mb-3 p-2 bg-muted/50 rounded-xl">
-          <span className="text-xs text-muted-foreground font-medium">Pagamento:</span>
-          <Badge variant="outline" className="flex items-center gap-1 text-xs font-semibold">
-            <PaymentIcon className="h-3 w-3" />
-            {order.paymentMethod}
-          </Badge>
+        {/* Totais e Pagamento - Rodapé da comanda */}
+        <div className="border-t-2 border-dashed border-border pt-3 mb-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+              <PaymentIcon className="h-3.5 w-3.5 text-primary" />
+              {order.paymentMethod}
+            </span>
+            <div className="text-right">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</p>
+              <p className="text-2xl font-extrabold text-primary leading-none">
+                R$ {order.total.toFixed(2).replace(".", ",")}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Ações */}
         {!isFinished && (
-          <div className="space-y-2">
+          <div className="space-y-2 print:hidden">
             {/* Avançar Status */}
             {nextStatus && config.nextLabel && (
               <Button
                 variant="default"
-                size="sm"
-                className={`w-full font-bold gap-2 bg-gradient-to-r ${config.gradient} hover:opacity-90 text-white shadow-md`}
+                size="default"
+                className={`w-full font-bold gap-2 bg-gradient-to-r ${config.gradient} hover:opacity-90 text-white shadow-md h-11`}
                 onClick={() => onUpdateStatus(order.id, nextStatus)}
               >
                 {config.nextIcon && <config.nextIcon className="h-4 w-4" />}
@@ -229,14 +250,24 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
               </Button>
             )}
 
-            {/* Cancelar */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full text-xs text-red-500 hover:text-red-700 hover:bg-red-50">
-                  <XCircle className="h-3 w-3 mr-1" />
-                  Cancelar Pedido
-                </Button>
-              </AlertDialogTrigger>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs gap-1"
+                onClick={() => window.print()}
+              >
+                <Printer className="h-3 w-3" />
+                Imprimir
+              </Button>
+              {/* Cancelar */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50">
+                    <XCircle className="h-3 w-3 mr-1" />
+                    Cancelar
+                  </Button>
+                </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Cancelar pedido?</AlertDialogTitle>
@@ -254,7 +285,8 @@ export function OrderCard({ order, index, onUpdateStatus }: OrderCardProps) {
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
-            </AlertDialog>
+              </AlertDialog>
+            </div>
           </div>
         )}
 
